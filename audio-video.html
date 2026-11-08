@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; media-src 'self' blob: data:;"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>Extractor y Convertidor de Audio 🎧 · MiniApps</title>
+  <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js" integrity="sha384-xuasJXVcyv3hZq0eYpelEkBC8l4yufatZXDsKuyCU2rqfhDCb+ftuE/mSfZAteiK" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose: #e8507a;
+      --pink: #f9c6d0;
+      --deep: #3a0a1e;
+      --gold: #d4a24c;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 30%, #7a1040 0%, var(--deep) 70%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 2rem 1rem;
+    }
+
+    .nav-bar {
+      margin-bottom: 1.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      max-width: 720px;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--pink);
+      font-size: 0.82rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 50px;
+      border: 1px solid rgba(232,80,122,0.35);
+      background: rgba(255,255,255,0.06);
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: var(--rose);
+      color: #fff;
+      border-color: var(--rose);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 24px;
+      padding: 2.2rem 1.8rem;
+      width: 100%;
+      max-width: 580px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    .card h1 {
+      font-size: 1.75rem;
+      color: var(--pink);
+      margin-bottom: 0.35rem;
+    }
+
+    .card p.sub {
+      font-size: 0.85rem;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      margin-bottom: 1.4rem;
+    }
+
+    .drop-zone {
+      border: 2px dashed rgba(232,80,122,0.5);
+      border-radius: 18px;
+      padding: 1.8rem 1.2rem;
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 1.2rem;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--rose);
+      background: rgba(232,80,122,0.14);
+    }
+    .drop-zone .icon { font-size: 2.3rem; margin-bottom: 0.4rem; }
+    .drop-zone p { font-size: 0.92rem; }
+    .drop-zone span {
+      display: block;
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 0.3rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.8rem;
+      margin-bottom: 1.2rem;
+      text-align: left;
+      background: rgba(0,0,0,0.2);
+      padding: 1rem;
+      border-radius: 14px;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--pink);
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid rgba(232,80,122,0.4);
+      background: #480d26;
+      color: #fff;
+      font-size: 0.86rem;
+      outline: none;
+    }
+
+    button {
+      padding: 0.75rem 1.6rem;
+      background: var(--rose);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    button:hover:not(:disabled) { background: #c73d65; transform: scale(1.03); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    #status-box {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: var(--pink);
+      display: none;
+    }
+
+    #output-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.9rem;
+      margin-top: 1.2rem;
+      padding: 1.1rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 16px;
+    }
+    #output-wrap.visible { display: flex; }
+
+    audio {
+      width: 100%;
+      max-width: 420px;
+      border-radius: 50px;
+    }
+
+    .dl-btn {
+      text-decoration: none;
+      background: var(--rose);
+      color: #fff;
+      padding: 0.65rem 1.8rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .dl-btn:hover { background: #c73d65; }
+
+    .privacy-note {
+      margin-top: 1.2rem;
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.5);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav-bar">
+  <a href="index.html" class="nav-link">🏠 Inicio</a>
+  <a href="qr.html" class="nav-link">💕 QR</a>
+  <a href="yt-mp3.html" class="nav-link">🎵 YT → MP3</a>
+  <a href="imagenes.html" class="nav-link">🖼️ Imágenes</a>
+  <a href="pdf-img.html" class="nav-link">📄 PDF ↔ Img</a>
+  <a href="audio-video.html" class="nav-link active">🎧 Audio Local</a>
+  <a href="formatos.html" class="nav-link">🔄 Datos/Formatos</a>
+</nav>
+
+<div class="card">
+  <h1>Video / Audio → MP3 y WAV 🎧</h1>
+  <p class="sub">Extrae el audio de cualquier video (MP4, MOV, WebM) o convierte formatos de audio</p>
+
+  <div class="drop-zone" id="drop-zone">
+    <div class="icon">🎬</div>
+    <p id="file-label">Selecciona o arrastra un archivo de Video o Audio</p>
+    <span>Soporta MP4, WebM, MOV, M4A, OGG, WAV, FLAC, MP3</span>
+    <input type="file" id="file-input" accept="video/*,audio/*" style="display:none"/>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label for="out-format">Formato de salida</label>
+      <select id="out-format">
+        <option value="mp3-192">MP3 (192 kbps · Recomendado)</option>
+        <option value="mp3-128">MP3 (128 kbps · Ligero)</option>
+        <option value="mp3-320">MP3 (320 kbps · Máxima calidad)</option>
+        <option value="wav">WAV (Sin pérdida · PCM 16-bit)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="trim-start">Inicio (segundos)</label>
+      <input type="number" id="trim-start" min="0" step="0.5" value="0"/>
+    </div>
+
+    <div class="control-group">
+      <label for="trim-end">Fin (0 = hasta el final)</label>
+      <input type="number" id="trim-end" min="0" step="0.5" value="0"/>
+    </div>
+  </div>
+
+  <button id="convert-btn" disabled>⚡ Extraer y Convertir Audio</button>
+  <p id="status-box"></p>
+
+  <div id="output-wrap">
+    <p id="out-title" style="font-size:0.9rem;color:var(--pink);font-weight:600;"></p>
+    <audio id="audio-preview" controls></audio>
+    <a id="dl-link" class="dl-btn" href="#" download="audio.mp3">⬇ Descargar Audio</a>
+  </div>
+
+  <p class="privacy-note">🔒 100% Privado: Tus videos y grabaciones se convierten directamente en la memoria de tu navegador.</p>
+</div>
+
+<script>
+  const dropZone     = document.getElementById('drop-zone');
+  const fileInput    = document.getElementById('file-input');
+  const fileLabel    = document.getElementById('file-label');
+  const outFormat    = document.getElementById('out-format');
+  const trimStart    = document.getElementById('trim-start');
+  const trimEnd      = document.getElementById('trim-end');
+  const convertBtn   = document.getElementById('convert-btn');
+  const statusBox    = document.getElementById('status-box');
+  const outputWrap   = document.getElementById('output-wrap');
+  const outTitle     = document.getElementById('out-title');
+  const audioPreview = document.getElementById('audio-preview');
+  const dlLink       = document.getElementById('dl-link');
+
+  let currentFile = null;
+  let currentBlobUrl = null;
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) selectFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) selectFile(fileInput.files[0]);
+  });
+
+  function selectFile(file) {
+    currentFile = file;
+    fileLabel.textContent = `📄 ${file.name}`;
+    convertBtn.disabled = false;
+    outputWrap.classList.remove('visible');
+  }
+
+  function encodeWAV(audioBuffer, startFrame, endFrame) {
+    const numChannels = Math.min(2, audioBuffer.numberOfChannels);
+    const sampleRate  = audioBuffer.sampleRate;
+    const frameCount  = endFrame - startFrame;
+    const bytesPerSample = 2;
+    const blockAlign = numChannels * bytesPerSample;
+    const dataSize = frameCount * blockAlign;
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
+
+    function writeString(offset, str) {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    }
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    const channels = [];
+    for (let c = 0; c < numChannels; c++) {
+      channels.push(audioBuffer.getChannelData(c));
+    }
+
+    let offset = 44;
+    for (let i = startFrame; i < endFrame; i++) {
+      for (let c = 0; c < numChannels; c++) {
+        let sample = Math.max(-1, Math.min(1, channels[c][i]));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        offset += 2;
+      }
+    }
+
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  function floatTo16BitPCM(float32Arr, start, end) {
+    const len = end - start;
+    const int16 = new Int16Array(len);
+    for (let i = 0; i < len; i++) {
+      const s = Math.max(-1, Math.min(1, float32Arr[start + i]));
+      int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+    return int16;
+  }
+
+  function encodeMP3(audioBuffer, startFrame, endFrame, kbps) {
+    const numChannels = Math.min(2, audioBuffer.numberOfChannels);
+    const sampleRate  = audioBuffer.sampleRate;
+    const mp3encoder  = new window.lamejs.Mp3Encoder(numChannels, sampleRate, kbps);
+    const left  = floatTo16BitPCM(audioBuffer.getChannelData(0), startFrame, endFrame);
+    const right = numChannels > 1 ? floatTo16BitPCM(audioBuffer.getChannelData(1), startFrame, endFrame) : null;
+
+    const mp3Data = [];
+    const blockSize = 1152;
+    for (let i = 0; i < left.length; i += blockSize) {
+      const leftChunk = left.subarray(i, i + blockSize);
+      let mp3buf;
+      if (numChannels === 2 && right) {
+        const rightChunk = right.subarray(i, i + blockSize);
+        mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+      } else {
+        mp3buf = mp3encoder.encodeBuffer(leftChunk);
+      }
+      if (mp3buf.length > 0) mp3Data.push(mp3buf);
+    }
+    const endBuf = mp3encoder.flush();
+    if (endBuf.length > 0) mp3Data.push(endBuf);
+
+    return new Blob(mp3Data, { type: 'audio/mpeg' });
+  }
+
+  convertBtn.addEventListener('click', async () => {
+    if (!currentFile) return;
+    convertBtn.disabled = true;
+    outputWrap.classList.remove('visible');
+    statusBox.style.display = 'block';
+    statusBox.textContent = '⏳ Decodificando pista de audio…';
+
+    try {
+      const arrayBuf = await currentFile.arrayBuffer();
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const audioCtx = new AudioCtx();
+      const decoded  = await audioCtx.decodeAudioData(arrayBuf);
+      audioCtx.close();
+
+      const sr = decoded.sampleRate;
+      const totalFrames = decoded.length;
+      const sSec = Math.max(0, parseFloat(trimStart.value) || 0);
+      const eSec = Math.max(0, parseFloat(trimEnd.value) || 0);
+
+      const startFrame = Math.min(totalFrames - 1, Math.floor(sSec * sr));
+      const endFrame   = (eSec > sSec) ? Math.min(totalFrames, Math.floor(eSec * sr)) : totalFrames;
+
+      const fmt = outFormat.value;
+      statusBox.textContent = '⏳ Codificando archivo de salida…';
+
+      await new Promise(r => setTimeout(r, 40));
+
+      let blob, ext;
+      if (fmt === 'wav') {
+        blob = encodeWAV(decoded, startFrame, endFrame);
+        ext  = 'wav';
+      } else {
+        const kbps = parseInt(fmt.split('-')[1], 10) || 192;
+        blob = encodeMP3(decoded, startFrame, endFrame, kbps);
+        ext  = 'mp3';
+      }
+
+      if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+      currentBlobUrl = URL.createObjectURL(blob);
+
+      const baseName = currentFile.name.replace(/\.[^.]+$/, '') || 'audio-extraido';
+      const outName  = `${baseName}.${ext}`;
+
+      outTitle.textContent = `🎶 ${outName} (${(blob.size / 1048576).toFixed(2)} MB)`;
+      audioPreview.src = currentBlobUrl;
+      dlLink.href      = currentBlobUrl;
+      dlLink.download  = outName;
+      dlLink.textContent = `⬇ Descargar ${ext.toUpperCase()}`;
+
+      statusBox.style.display = 'none';
+      outputWrap.classList.add('visible');
+    } catch (e) {
+      statusBox.textContent = '⚠️ No se pudo extraer el audio de este archivo (' + e.message + ').';
+    } finally {
+      convertBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

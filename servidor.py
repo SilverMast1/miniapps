@@ -23,6 +23,10 @@ ALLOWED_STATIC_FILES = {
     "/index.html": "index.html",
     "/qr.html": "qr.html",
     "/yt-mp3.html": "yt-mp3.html",
+    "/imagenes.html": "imagenes.html",
+    "/pdf-img.html": "pdf-img.html",
+    "/audio-video.html": "audio-video.html",
+    "/formatos.html": "formatos.html",
 }
 
 DEFAULT_COBALT_APIS = [

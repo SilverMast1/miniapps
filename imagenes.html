@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>Convertidor de Imágenes 🖼️ · MiniApps</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose: #e8507a;
+      --pink: #f9c6d0;
+      --deep: #3a0a1e;
+      --gold: #d4a24c;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 30%, #7a1040 0%, var(--deep) 70%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 2rem 1rem;
+    }
+
+    .nav-bar {
+      margin-bottom: 1.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      max-width: 720px;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--pink);
+      font-size: 0.82rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 50px;
+      border: 1px solid rgba(232,80,122,0.35);
+      background: rgba(255,255,255,0.06);
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: var(--rose);
+      color: #fff;
+      border-color: var(--rose);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 24px;
+      padding: 2.2rem 1.8rem;
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    .card h1 {
+      font-size: 1.75rem;
+      color: var(--pink);
+      margin-bottom: 0.35rem;
+    }
+
+    .card p.sub {
+      font-size: 0.85rem;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      margin-bottom: 1.5rem;
+    }
+
+    .drop-zone {
+      border: 2px dashed rgba(232,80,122,0.5);
+      border-radius: 18px;
+      padding: 2rem 1.2rem;
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 1.4rem;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--rose);
+      background: rgba(232,80,122,0.14);
+    }
+    .drop-zone .icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .drop-zone p {
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.85);
+    }
+    .drop-zone span {
+      display: block;
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 0.35rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.9rem;
+      margin-bottom: 1.4rem;
+      text-align: left;
+      background: rgba(0,0,0,0.2);
+      padding: 1rem;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--pink);
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid rgba(232,80,122,0.4);
+      background: #480d26;
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    input[type="range"] {
+      padding: 0;
+      accent-color: var(--rose);
+      cursor: pointer;
+      margin-top: 0.4rem;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 0.7rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      background: var(--rose);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    button:hover:not(:disabled) { background: #c73d65; transform: scale(1.03); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    button.secondary {
+      background: transparent;
+      border: 1px solid var(--rose);
+      color: var(--pink);
+    }
+    button.secondary:hover:not(:disabled) {
+      background: var(--rose);
+      color: #fff;
+    }
+
+    #results-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-height: 340px;
+      overflow-y: auto;
+      padding-right: 0.2rem;
+    }
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(232,80,122,0.28);
+      border-radius: 14px;
+      padding: 0.7rem 0.9rem;
+      text-align: left;
+    }
+
+    .result-thumb {
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    .result-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .result-name {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--pink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-stats {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.65);
+      margin-top: 0.15rem;
+    }
+
+    .saving-tag {
+      color: #6ee7b7;
+      font-weight: 600;
+    }
+
+    .dl-mini {
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8rem;
+      border-radius: 50px;
+      text-decoration: none;
+      background: var(--rose);
+      color: #fff;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .dl-mini:hover { background: #c73d65; }
+
+    .privacy-note {
+      margin-top: 1.2rem;
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.5);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav-bar">
+  <a href="index.html" class="nav-link">🏠 Inicio</a>
+  <a href="qr.html" class="nav-link">💕 QR</a>
+  <a href="yt-mp3.html" class="nav-link">🎵 YT → MP3</a>
+  <a href="imagenes.html" class="nav-link active">🖼️ Imágenes</a>
+  <a href="pdf-img.html" class="nav-link">📄 PDF ↔ Img</a>
+  <a href="audio-video.html" class="nav-link">🎧 Audio Local</a>
+  <a href="formatos.html" class="nav-link">🔄 Datos/Formatos</a>
+</nav>
+
+<div class="card">
+  <h1>Convertidor de Imágenes 🖼️</h1>
+  <p class="sub">Convierte, comprime y redimensiona (PNG · JPG · WebP · ICO)</p>
+
+  <div class="drop-zone" id="drop-zone">
+    <div class="icon">📂</div>
+    <p>Haz clic o arrastra tus imágenes aquí</p>
+    <span>Soporta PNG, JPG, WebP, GIF, BMP, SVG (Conversión por lotes 100% privada)</span>
+    <input type="file" id="file-input" accept="image/*" multiple style="display:none"/>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label for="format-select">Formato de salida</label>
+      <select id="format-select">
+        <option value="image/webp">WebP (Ultra ligero)</option>
+        <option value="image/png">PNG (Sin pérdida / Transparente)</option>
+        <option value="image/jpeg">JPG / JPEG (Compatible)</option>
+        <option value="image/x-icon">ICO (Favicon 64×64)</option>
+      </select>
+    </div>
+
+    <div class="control-group" id="quality-group">
+      <label for="quality-range">Calidad: <span id="quality-val">85</span>%</label>
+      <input type="range" id="quality-range" min="10" max="100" value="85"/>
+    </div>
+
+    <div class="control-group">
+      <label for="scale-select">Tamaño / Escala</label>
+      <select id="scale-select">
+        <option value="1">100% (Original)</option>
+        <option value="0.75">75% (Mediano)</option>
+        <option value="0.5">50% (Mitad)</option>
+        <option value="0.25">25% (Miniatura)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button id="convert-btn" disabled>⚡ Convertir Imágenes</button>
+    <button id="dl-all-btn" class="secondary" style="display:none">⬇ Descargar Todas</button>
+    <button id="clear-btn" class="secondary" style="display:none">🗑️ Limpiar</button>
+  </div>
+
+  <div id="results-list"></div>
+
+  <p class="privacy-note">🔒 100% Privado: Tus fotos se procesan en tu navegador sin subirse a ningún servidor y se limpian los metadatos EXIF automáticamente.</p>
+</div>
+
+<script>
+  const dropZone      = document.getElementById('drop-zone');
+  const fileInput     = document.getElementById('file-input');
+  const formatSelect  = document.getElementById('format-select');
+  const qualityRange  = document.getElementById('quality-range');
+  const qualityVal    = document.getElementById('quality-val');
+  const qualityGroup  = document.getElementById('quality-group');
+  const scaleSelect   = document.getElementById('scale-select');
+  const convertBtn    = document.getElementById('convert-btn');
+  const dlAllBtn      = document.getElementById('dl-all-btn');
+  const clearBtn      = document.getElementById('clear-btn');
+  const resultsList   = document.getElementById('results-list');
+
+  let selectedFiles = [];
+  let convertedItems = [];
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(2) + ' MB';
+  }
+
+  function getExt(mime) {
+    if (mime === 'image/webp') return 'webp';
+    if (mime === 'image/png') return 'png';
+    if (mime === 'image/jpeg') return 'jpg';
+    if (mime === 'image/x-icon') return 'ico';
+    return 'png';
+  }
+
+  formatSelect.addEventListener('change', () => {
+    const mime = formatSelect.value;
+    qualityGroup.style.opacity = (mime === 'image/png' || mime === 'image/x-icon') ? '0.4' : '1';
+  });
+
+  qualityRange.addEventListener('input', () => {
+    qualityVal.textContent = qualityRange.value;
+  });
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+  function handleFiles(fileList) {
+    const valid = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if (!valid.length) return;
+    selectedFiles = selectedFiles.concat(valid);
+    convertBtn.disabled = false;
+    clearBtn.style.display = 'inline-block';
+    convertAll();
+  }
+
+  async function processSingleFile(file, targetMime, quality, scale) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let w = Math.max(1, Math.round(img.naturalWidth * scale));
+        let h = Math.max(1, Math.round(img.naturalHeight * scale));
+
+        if (targetMime === 'image/x-icon') {
+          w = 64;
+          h = 64;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+
+        // Fondo blanco si se convierte transparencia a JPEG
+        if (targetMime === 'image/jpeg') {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+        }
+
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const outMime = targetMime === 'image/x-icon' ? 'image/png' : targetMime;
+        canvas.toBlob(blob => {
+          if (!blob) return reject(new Error('Error al codificar imagen'));
+          const ext = getExt(targetMime);
+          const baseName = file.name.replace(/\.[^.]+$/, '') || 'imagen';
+          const outName = `${baseName}.${ext}`;
+          const blobUrl = URL.createObjectURL(blob);
+          resolve({
+            originalName: file.name,
+            outName,
+            originalSize: file.size,
+            newSize: blob.size,
+            width: w,
+            height: h,
+            blobUrl
+          });
+        }, outMime, quality);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Imagen no válida'));
+      };
+      img.src = url;
+    });
+  }
+
+  async function convertAll() {
+    if (!selectedFiles.length) return;
+    convertBtn.disabled = true;
+    convertBtn.textContent = '⏳ Procesando…';
+
+    // Liberar URLs previas
+    convertedItems.forEach(item => URL.revokeObjectURL(item.blobUrl));
+    convertedItems = [];
+    resultsList.innerHTML = '';
+
+    const targetMime = formatSelect.value;
+    const quality    = parseInt(qualityRange.value, 10) / 100;
+    const scale      = parseFloat(scaleSelect.value);
+
+    for (const file of selectedFiles) {
+      try {
+        const res = await processSingleFile(file, targetMime, quality, scale);
+        convertedItems.push(res);
+        renderResultItem(res);
+      } catch (_) {}
+    }
+
+    convertBtn.disabled = false;
+    convertBtn.textContent = '⚡ Volver a Convertir';
+    dlAllBtn.style.display = convertedItems.length > 1 ? 'inline-block' : 'none';
+  }
+
+  function renderResultItem(item) {
+    const row = document.createElement('div');
+    row.className = 'result-item';
+
+    const thumb = document.createElement('img');
+    thumb.className = 'result-thumb';
+    thumb.src = item.blobUrl;
+    thumb.alt = item.outName;
+
+    const meta = document.createElement('div');
+    meta.className = 'result-meta';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'result-name';
+    nameEl.textContent = item.outName;
+
+    const diff = item.originalSize - item.newSize;
+    const pct = item.originalSize > 0 ? Math.round((diff / item.originalSize) * 100) : 0;
+    const statsEl = document.createElement('div');
+    statsEl.className = 'result-stats';
+    statsEl.textContent = `${item.width}×${item.height}px · ${formatBytes(item.originalSize)} → ${formatBytes(item.newSize)} `;
+
+    if (pct > 0) {
+      const tag = document.createElement('span');
+      tag.className = 'saving-tag';
+      tag.textContent = `(-${pct}%)`;
+      statsEl.appendChild(tag);
+    }
+
+    meta.appendChild(nameEl);
+    meta.appendChild(statsEl);
+
+    const dlLink = document.createElement('a');
+    dlLink.className = 'dl-mini';
+    dlLink.href = item.blobUrl;
+    dlLink.download = item.outName;
+    dlLink.textContent = '⬇ Guardar';
+
+    row.appendChild(thumb);
+    row.appendChild(meta);
+    row.appendChild(dlLink);
+    resultsList.appendChild(row);
+  }
+
+  convertBtn.addEventListener('click', convertAll);
+
+  dlAllBtn.addEventListener('click', () => {
+    convertedItems.forEach((item, i) => {
+      setTimeout(() => {
+        const a = document.createElement('a');
+        a.href = item.blobUrl;
+        a.download = item.outName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }, i * 250);
+    });
+  });
+
+  clearBtn.addEventListener('click', () => {
+    convertedItems.forEach(item => URL.revokeObjectURL(item.blobUrl));
+    convertedItems = [];
+    selectedFiles = [];
+    resultsList.innerHTML = '';
+    fileInput.value = '';
+    convertBtn.disabled = true;
+    convertBtn.textContent = '⚡ Convertir Imágenes';
+    dlAllBtn.style.display = 'none';
+    clearBtn.style.display = 'none';
+  });
+</script>
+</body>
+</html>

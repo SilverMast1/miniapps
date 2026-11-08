@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';"/>
   <meta name="referrer" content="no-referrer"/>
-  <title>Mis MiniApps 💕🎵</title>
+  <title>Mis MiniApps ✨ · Suite de Utilidades y Convertidores</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -24,16 +24,16 @@
       justify-content: center;
       font-family: 'Segoe UI', sans-serif;
       color: #fff;
-      padding: 2rem;
+      padding: 2rem 1rem;
     }
 
     .card {
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(232,80,122,0.3);
       border-radius: 24px;
-      padding: 2.8rem 2.2rem;
+      padding: 2.5rem 2rem;
       width: 100%;
-      max-width: 520px;
+      max-width: 780px;
       text-align: center;
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 40px rgba(0,0,0,0.5);
@@ -42,27 +42,27 @@
     .card h1 {
       font-size: 2rem;
       color: var(--pink);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     .card p.sub {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--gold);
       letter-spacing: 0.08em;
-      margin-bottom: 2rem;
+      margin-bottom: 1.8rem;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.1rem;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
     }
 
     .app-btn {
       display: flex;
       align-items: center;
-      gap: 1.1rem;
-      padding: 1.25rem 1.4rem;
+      gap: 1rem;
+      padding: 1.15rem 1.25rem;
       border-radius: 18px;
       text-decoration: none;
       color: #fff;
@@ -79,9 +79,9 @@
     }
 
     .icon {
-      font-size: 2.2rem;
-      width: 52px;
-      height: 52px;
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -91,33 +91,39 @@
     }
 
     .info h2 {
-      font-size: 1.15rem;
+      font-size: 1.08rem;
       color: var(--pink);
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.22rem;
     }
 
     .info p {
-      font-size: 0.83rem;
-      color: rgba(255,255,255,0.68);
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.7);
       line-height: 1.35;
     }
 
     .badge {
       display: inline-block;
       margin-top: 0.4rem;
-      font-size: 0.7rem;
-      padding: 0.15rem 0.55rem;
+      font-size: 0.68rem;
+      padding: 0.14rem 0.55rem;
       border-radius: 50px;
       background: rgba(212,162,76,0.2);
       color: var(--gold);
       border: 1px solid rgba(212,162,76,0.4);
+    }
+
+    .footer-note {
+      margin-top: 1.6rem;
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.5);
     }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Mis MiniApps ✨</h1>
-    <p class="sub">Selecciona la herramienta que deseas abrir</p>
+    <p class="sub">Suite de convertidores y herramientas 100% gratis, privadas y online</p>
 
     <div class="grid">
       <a href="qr.html" class="app-btn">
@@ -125,7 +131,7 @@
         <div class="info">
           <h2>Generador QR</h2>
           <p>Convierte cualquier enlace en un código QR descargable en PNG al instante.</p>
-          <span class="badge">✓ 100% Web · Funciona sin servidor</span>
+          <span class="badge">✓ 100% Gratis · Sin servidor</span>
         </div>
       </a>
 
@@ -134,10 +140,48 @@
         <div class="info">
           <h2>YouTube → MP3</h2>
           <p>Extrae y descarga el audio en formato MP3 a 320 kbps de videos y Shorts.</p>
-          <span class="badge">✓ 100% Web · Funciona directo en GitHub Pages</span>
+          <span class="badge">✓ 100% Gratis · Directo en Web</span>
+        </div>
+      </a>
+
+      <a href="imagenes.html" class="app-btn">
+        <div class="icon">🖼️</div>
+        <div class="info">
+          <h2>Convertidor de Imágenes</h2>
+          <p>Convierte y comprime entre WebP, PNG, JPG e ICO (Favicon) por lotes y limpia EXIF.</p>
+          <span class="badge">✓ 100% Gratis · Privacidad Local</span>
+        </div>
+      </a>
+
+      <a href="pdf-img.html" class="app-btn">
+        <div class="icon">📄</div>
+        <div class="info">
+          <h2>Imágenes ↔ PDF</h2>
+          <p>Une varias fotos en un documento PDF o convierte las páginas de un PDF en imágenes HD.</p>
+          <span class="badge">✓ 100% Gratis · Sin marca de agua</span>
+        </div>
+      </a>
+
+      <a href="audio-video.html" class="app-btn">
+        <div class="icon">🎧</div>
+        <div class="info">
+          <h2>Video / Audio Local → MP3</h2>
+          <p>Extrae el audio de archivos MP4/MOV/WebM, recorta fragmentos y pásalos a MP3 o WAV.</p>
+          <span class="badge">✓ 100% Gratis · Sin subir archivos</span>
+        </div>
+      </a>
+
+      <a href="formatos.html" class="app-btn">
+        <div class="icon">🔄</div>
+        <div class="info">
+          <h2>Convertidor de Datos</h2>
+          <p>Transforma archivos y texto entre JSON, CSV (Excel), TSV, Tabla HTML y Base64.</p>
+          <span class="badge">✓ 100% Gratis · Instantáneo</span>
         </div>
       </a>
     </div>
+
+    <p class="footer-note">🔒 Diseñado con Ciberseguridad: Sin rastreadores, sin anuncios y con procesamiento en tu propio navegador.</p>
   </div>
 </body>
 </html>

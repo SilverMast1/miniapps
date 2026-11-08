@@ -31,14 +31,17 @@
     .nav-bar {
       margin-bottom: 1.2rem;
       display: flex;
-      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      max-width: 720px;
     }
 
     .nav-link {
       text-decoration: none;
       color: var(--pink);
-      font-size: 0.85rem;
-      padding: 0.45rem 1rem;
+      font-size: 0.82rem;
+      padding: 0.45rem 0.9rem;
       border-radius: 50px;
       border: 1px solid rgba(232,80,122,0.35);
       background: rgba(255,255,255,0.06);
@@ -192,8 +195,12 @@
 
 <nav class="nav-bar">
   <a href="index.html" class="nav-link">🏠 Inicio</a>
-  <a href="qr.html" class="nav-link">💕 Generador QR</a>
-  <a href="yt-mp3.html" class="nav-link active">🎵 YouTube → MP3</a>
+  <a href="qr.html" class="nav-link">💕 QR</a>
+  <a href="yt-mp3.html" class="nav-link active">🎵 YT → MP3</a>
+  <a href="imagenes.html" class="nav-link">🖼️ Imágenes</a>
+  <a href="pdf-img.html" class="nav-link">📄 PDF ↔ Img</a>
+  <a href="audio-video.html" class="nav-link">🎧 Audio Local</a>
+  <a href="formatos.html" class="nav-link">🔄 Datos/Formatos</a>
 </nav>
 
 <div class="card">
