@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';"/>
   <meta name="referrer" content="no-referrer"/>
-  <title>Mis MiniApps ✨ · Suite de Utilidades y Convertidores</title>
+  <title>Mis MiniApps ✨ · Suite Completa de Utilidades y Convertidores</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -24,45 +24,45 @@
       justify-content: center;
       font-family: 'Segoe UI', sans-serif;
       color: #fff;
-      padding: 2rem 1rem;
+      padding: 2.5rem 1rem;
     }
 
     .card {
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(232,80,122,0.3);
-      border-radius: 24px;
+      border-radius: 26px;
       padding: 2.5rem 2rem;
       width: 100%;
-      max-width: 780px;
+      max-width: 920px;
       text-align: center;
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 40px rgba(0,0,0,0.5);
     }
 
     .card h1 {
-      font-size: 2rem;
+      font-size: 2.2rem;
       color: var(--pink);
       margin-bottom: 0.4rem;
     }
 
     .card p.sub {
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       color: var(--gold);
       letter-spacing: 0.08em;
-      margin-bottom: 1.8rem;
+      margin-bottom: 2rem;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.1rem;
     }
 
     .app-btn {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 1rem;
-      padding: 1.15rem 1.25rem;
+      padding: 1.2rem;
       border-radius: 18px;
       text-decoration: none;
       color: #fff;
@@ -80,8 +80,8 @@
 
     .icon {
       font-size: 2rem;
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -91,22 +91,22 @@
     }
 
     .info h2 {
-      font-size: 1.08rem;
+      font-size: 1.05rem;
       color: var(--pink);
       margin-bottom: 0.22rem;
     }
 
     .info p {
-      font-size: 0.8rem;
+      font-size: 0.79rem;
       color: rgba(255,255,255,0.7);
       line-height: 1.35;
     }
 
     .badge {
       display: inline-block;
-      margin-top: 0.4rem;
+      margin-top: 0.45rem;
       font-size: 0.68rem;
-      padding: 0.14rem 0.55rem;
+      padding: 0.15rem 0.55rem;
       border-radius: 50px;
       background: rgba(212,162,76,0.2);
       color: var(--gold);
@@ -114,74 +114,120 @@
     }
 
     .footer-note {
-      margin-top: 1.6rem;
-      font-size: 0.76rem;
-      color: rgba(255,255,255,0.5);
+      margin-top: 2rem;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.55);
     }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Mis MiniApps ✨</h1>
-    <p class="sub">Suite de convertidores y herramientas 100% gratis, privadas y online</p>
+    <p class="sub">Suite de 10 herramientas y convertidores 100% gratis, privados y online</p>
 
     <div class="grid">
+      <!-- 1 -->
       <a href="qr.html" class="app-btn">
         <div class="icon">💕</div>
         <div class="info">
           <h2>Generador QR</h2>
           <p>Convierte cualquier enlace en un código QR descargable en PNG al instante.</p>
-          <span class="badge">✓ 100% Gratis · Sin servidor</span>
+          <span class="badge">✓ Sin Servidor · 100% Gratis</span>
         </div>
       </a>
 
+      <!-- 2 -->
+      <a href="escaner-qr.html" class="app-btn">
+        <div class="icon">🔍</div>
+        <div class="info">
+          <h2>Escanear QR</h2>
+          <p>Lee códigos QR desde imágenes subidas o directamente con la cámara web.</p>
+          <span class="badge">✓ Lector QR · Cámara / Foto</span>
+        </div>
+      </a>
+
+      <!-- 3 -->
       <a href="yt-mp3.html" class="app-btn">
         <div class="icon">🎵</div>
         <div class="info">
           <h2>YouTube → MP3</h2>
-          <p>Extrae y descarga el audio en formato MP3 a 320 kbps de videos y Shorts.</p>
-          <span class="badge">✓ 100% Gratis · Directo en Web</span>
+          <p>Descarga el audio de videos y Shorts en MP3 a 320 kbps sin anuncios.</p>
+          <span class="badge">✓ Directo en Web · 320 kbps</span>
         </div>
       </a>
 
+      <!-- 4 -->
       <a href="imagenes.html" class="app-btn">
         <div class="icon">🖼️</div>
         <div class="info">
-          <h2>Convertidor SVG / WebP / PNG / JPG</h2>
-          <p>Convierte entre WebP, SVG (Vector), PNG, JPG, AVIF, ICO y BMP por lotes y limpia EXIF.</p>
-          <span class="badge">✓ SVG · WebP · PNG · JPG · AVIF · ICO · BMP</span>
+          <h2>Imágenes / SVG / WebP</h2>
+          <p>Convierte entre SVG (vector), WebP, PNG, JPG, AVIF, ICO y BMP con compresión.</p>
+          <span class="badge">✓ SVG Vector · WebP · ICO · BMP</span>
         </div>
       </a>
 
+      <!-- 5 -->
       <a href="pdf-img.html" class="app-btn">
         <div class="icon">📄</div>
         <div class="info">
           <h2>Imágenes ↔ PDF</h2>
-          <p>Une varias fotos en un documento PDF o convierte las páginas de un PDF en imágenes HD.</p>
-          <span class="badge">✓ 100% Gratis · Sin marca de agua</span>
+          <p>Une varias fotos en un documento PDF o extrae páginas de un PDF a imagen HD.</p>
+          <span class="badge">✓ Sin límite de hojas</span>
         </div>
       </a>
 
+      <!-- 6 -->
+      <a href="pdf-herramientas.html" class="app-btn">
+        <div class="icon">📚</div>
+        <div class="info">
+          <h2>Caja de Herramientas PDF</h2>
+          <p>Une múltiples PDFs en uno solo, extrae rangos de páginas o rota documentos.</p>
+          <span class="badge">✓ Unir · Dividir · Rotar</span>
+        </div>
+      </a>
+
+      <!-- 7 -->
       <a href="audio-video.html" class="app-btn">
         <div class="icon">🎧</div>
         <div class="info">
-          <h2>Video / Audio Local → MP3</h2>
-          <p>Extrae el audio de archivos MP4/MOV/WebM, recorta fragmentos y pásalos a MP3 o WAV.</p>
-          <span class="badge">✓ MP4 · MOV · WebM → MP3 · WAV</span>
+          <h2>Video / Audio → MP3</h2>
+          <p>Extrae audio de videos MP4/MOV/WebM o convierte audios con recorte a MP3/WAV.</p>
+          <span class="badge">✓ Extraer & Recortar Audio</span>
         </div>
       </a>
 
+      <!-- 8 -->
+      <a href="grabador.html" class="app-btn">
+        <div class="icon">🎥</div>
+        <div class="info">
+          <h2>Grabador de Pantalla & Voz</h2>
+          <p>Graba la pantalla de tu equipo, tu cámara web o notas de voz con audio.</p>
+          <span class="badge">✓ Pantalla · Cámara · Micrófono</span>
+        </div>
+      </a>
+
+      <!-- 9 -->
+      <a href="seguridad.html" class="app-btn">
+        <div class="icon">🛡️</div>
+        <div class="info">
+          <h2>Ciberseguridad & Hashes</h2>
+          <p>Genera contraseñas seguras, calcula Checksums (SHA-256) y crea UUIDs.</p>
+          <span class="badge">✓ Criptografía Nativa CSPRNG</span>
+        </div>
+      </a>
+
+      <!-- 10 -->
       <a href="formatos.html" class="app-btn">
         <div class="icon">🔄</div>
         <div class="info">
           <h2>Convertidor CSV / JSON / Datos</h2>
-          <p>Transforma archivos y texto entre CSV (Excel), JSON, TSV, Tabla HTML y Base64.</p>
-          <span class="badge">✓ CSV · JSON · TSV · HTML · Base64</span>
+          <p>Transforma hojas y texto entre CSV (Excel), JSON, TSV, HTML y Base64.</p>
+          <span class="badge">✓ CSV · JSON · Base64 · TSV</span>
         </div>
       </a>
     </div>
 
-    <p class="footer-note">🔒 Diseñado con Ciberseguridad: Sin rastreadores, sin anuncios y con procesamiento en tu propio navegador.</p>
+    <p class="footer-note">🔒 Ciberseguridad y Privacidad: Sin registros, sin anuncios invasivos y con procesamiento local en tu navegador.</p>
   </div>
 </body>
 </html>

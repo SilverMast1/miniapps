@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:;"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>Grabador de Pantalla y Cámara 🎥 · MiniApps</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose: #e8507a;
+      --pink: #f9c6d0;
+      --deep: #3a0a1e;
+      --gold: #d4a24c;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 30%, #7a1040 0%, var(--deep) 70%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 2rem 1rem;
+    }
+
+    .nav-bar {
+      margin-bottom: 1.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.45rem;
+      max-width: 820px;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--pink);
+      font-size: 0.8rem;
+      padding: 0.42rem 0.85rem;
+      border-radius: 50px;
+      border: 1px solid rgba(232,80,122,0.35);
+      background: rgba(255,255,255,0.06);
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: var(--rose);
+      color: #fff;
+      border-color: var(--rose);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 24px;
+      padding: 2.2rem 1.8rem;
+      width: 100%;
+      max-width: 660px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    .card h1 {
+      font-size: 1.75rem;
+      color: var(--pink);
+      margin-bottom: 0.35rem;
+    }
+
+    .card p.sub {
+      font-size: 0.85rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      margin-bottom: 1.4rem;
+    }
+
+    .source-selector {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .source-btn {
+      padding: 0.65rem 1.2rem;
+      border-radius: 12px;
+      border: 1px solid rgba(232,80,122,0.4);
+      background: rgba(255,255,255,0.07);
+      color: var(--pink);
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .source-btn.active {
+      background: var(--rose);
+      color: #fff;
+      border-color: var(--rose);
+    }
+
+    .options-row {
+      display: flex;
+      justify-content: center;
+      gap: 1.2rem;
+      margin-bottom: 1.3rem;
+      font-size: 0.84rem;
+      color: rgba(255,255,255,0.85);
+      flex-wrap: wrap;
+    }
+    .options-row label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+    }
+    .options-row input[type="checkbox"] {
+      accent-color: var(--rose);
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+
+    .video-preview-wrap {
+      width: 100%;
+      max-width: 580px;
+      aspect-ratio: 16 / 9;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 16px;
+      overflow: hidden;
+      margin: 0 auto 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .placeholder-msg {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .rec-indicator {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      display: none;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(0,0,0,0.65);
+      padding: 0.35rem 0.8rem;
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #fff;
+      backdrop-filter: blur(6px);
+    }
+    .rec-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 50% { opacity: 0.2; } }
+
+    .btn-row {
+      display: flex;
+      gap: 0.7rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 0.8rem;
+    }
+
+    button.ctl {
+      padding: 0.75rem 1.6rem;
+      background: var(--rose);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    button.ctl:hover:not(:disabled) { background: #c73d65; transform: scale(1.03); }
+    button.ctl:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    button.ctl.stop { background: #ef4444; }
+    button.ctl.stop:hover:not(:disabled) { background: #dc2626; }
+
+    button.ctl.pause { background: var(--gold); color: #000; }
+    button.ctl.pause:hover:not(:disabled) { background: #c2913b; }
+
+    .download-card {
+      display: none;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(232,80,122,0.35);
+      border-radius: 16px;
+      padding: 1rem 1.4rem;
+      margin-top: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .dl-btn {
+      text-decoration: none;
+      background: var(--rose);
+      color: #fff;
+      padding: 0.65rem 1.5rem;
+      border-radius: 50px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .dl-btn:hover { background: #c73d65; }
+
+    .privacy-note {
+      margin-top: 1.2rem;
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.5);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav-bar">
+  <a href="index.html" class="nav-link">🏠 Inicio</a>
+  <a href="qr.html" class="nav-link">💕 QR</a>
+  <a href="escaner-qr.html" class="nav-link">🔍 Escanear QR</a>
+  <a href="yt-mp3.html" class="nav-link">🎵 YT → MP3</a>
+  <a href="imagenes.html" class="nav-link">🖼️ Imágenes/SVG</a>
+  <a href="pdf-img.html" class="nav-link">📄 PDF ↔ Img</a>
+  <a href="pdf-herramientas.html" class="nav-link">📚 PDF Tools</a>
+  <a href="audio-video.html" class="nav-link">🎧 Audio Local</a>
+  <a href="grabador.html" class="nav-link active">🎥 Grabador</a>
+  <a href="seguridad.html" class="nav-link">🛡️ Ciberseguridad</a>
+  <a href="formatos.html" class="nav-link">🔄 Datos/Formatos</a>
+</nav>
+
+<div class="card">
+  <h1>Grabador de Pantalla y Cámara 🎥</h1>
+  <p class="sub">Graba tu pantalla, cámara web o micrófono sin instalar ningún programa</p>
+
+  <div class="source-selector">
+    <button class="source-btn active" data-type="screen">🖥️ Pantalla Completa / Ventana</button>
+    <button class="source-btn" data-type="camera">📸 Cámara Web</button>
+    <button class="source-btn" data-type="mic">🎙️ Solo Micrófono (Voz)</button>
+  </div>
+
+  <div class="options-row">
+    <label id="mic-option">
+      <input type="checkbox" id="include-mic" checked/>
+      Incluir micrófono (Voz)
+    </label>
+    <label id="sys-audio-option">
+      <input type="checkbox" id="include-sys-audio" checked/>
+      Audio del sistema / pestaña
+    </label>
+  </div>
+
+  <div class="video-preview-wrap">
+    <div class="rec-indicator" id="rec-badge">
+      <div class="rec-dot"></div>
+      <span id="timer-text">REC 00:00</span>
+    </div>
+    <video id="preview-video" autoplay playsinline muted></video>
+    <div class="placeholder-msg" id="placeholder-box">
+      <span style="font-size:2.8rem">🎬</span>
+      <span>Presiona "Iniciar Grabación" para comenzar</span>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="ctl" id="start-btn">🔴 Iniciar Grabación</button>
+    <button class="ctl pause" id="pause-btn" style="display:none">⏸️ Pausar</button>
+    <button class="ctl stop" id="stop-btn" style="display:none">⏹️ Detener y Guardar</button>
+  </div>
+
+  <div class="download-card" id="dl-card">
+    <div>
+      <p id="rec-info" style="font-size:0.88rem;color:var(--pink);font-weight:600"></p>
+      <span id="rec-size" style="font-size:0.75rem;color:rgba(255,255,255,0.6)"></span>
+    </div>
+    <a href="#" id="dl-video-btn" class="dl-btn" download="grabacion.webm">⬇ Descargar Video</a>
+  </div>
+
+  <p class="privacy-note">🔒 100% Privado: Todo el video y audio se procesa en tu ordenador sin subir ningún dato a la nube.</p>
+</div>
+
+<script>
+  let currentType    = 'screen';
+  let mediaRecorder  = null;
+  let recordedChunks = [];
+  let stream         = null;
+  let timerInterval  = null;
+  let secondsElapsed = 0;
+  let outputBlobUrl  = null;
+
+  const sourceBtns      = document.querySelectorAll('.source-btn');
+  const includeMic      = document.getElementById('include-mic');
+  const includeSysAudio = document.getElementById('include-sys-audio');
+  const micOption       = document.getElementById('mic-option');
+  const sysAudioOption  = document.getElementById('sys-audio-option');
+  const previewVideo    = document.getElementById('preview-video');
+  const placeholderBox  = document.getElementById('placeholder-box');
+  const recBadge        = document.getElementById('rec-badge');
+  const timerText       = document.getElementById('timer-text');
+  const startBtn        = document.getElementById('start-btn');
+  const pauseBtn        = document.getElementById('pause-btn');
+  const stopBtn         = document.getElementById('stop-btn');
+  const dlCard          = document.getElementById('dl-card');
+  const recInfo         = document.getElementById('rec-info');
+  const recSize         = document.getElementById('rec-size');
+  const dlVideoBtn      = document.getElementById('dl-video-btn');
+
+  sourceBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') return;
+      sourceBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentType = btn.dataset.type;
+      updateSourceUI();
+    });
+  });
+
+  function updateSourceUI() {
+    if (currentType === 'mic') {
+      micOption.style.display = 'none';
+      sysAudioOption.style.display = 'none';
+    } else if (currentType === 'camera') {
+      micOption.style.display = 'flex';
+      sysAudioOption.style.display = 'none';
+    } else {
+      micOption.style.display = 'flex';
+      sysAudioOption.style.display = 'flex';
+    }
+  }
+
+  function formatTime(secs) {
+    const m = String(Math.floor(secs / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  startBtn.addEventListener('click', async () => {
+    dlCard.style.display = 'none';
+    recordedChunks = [];
+    secondsElapsed = 0;
+
+    try {
+      let videoStream = null;
+      let audioStream = null;
+
+      if (currentType === 'screen') {
+        videoStream = await navigator.mediaDevices.getDisplayMedia({
+          video: { frameRate: { ideal: 30 } },
+          audio: includeSysAudio.checked
+        });
+        if (includeMic.checked) {
+          try {
+            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          } catch (_) {}
+        }
+      } else if (currentType === 'camera') {
+        const wantsAudio = includeMic.checked;
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: wantsAudio
+        });
+      } else {
+        // Solo Micrófono
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+
+      // Combinar pistas de video y audio
+      const tracks = [];
+      if (videoStream) videoStream.getVideoTracks().forEach(t => tracks.push(t));
+      if (videoStream) videoStream.getAudioTracks().forEach(t => tracks.push(t));
+      if (audioStream) audioStream.getAudioTracks().forEach(t => tracks.push(t));
+
+      stream = new MediaStream(tracks);
+
+      if (videoStream) {
+        previewVideo.srcObject = stream;
+        previewVideo.play();
+        placeholderBox.style.display = 'none';
+      }
+
+      // Si el usuario cancela compartir pantalla con el botón flotante del navegador
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.addEventListener('ended', () => {
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') stopRecording();
+        });
+      }
+
+      const mime = currentType === 'mic'
+        ? (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '')
+        : (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus' : 'video/webm');
+
+      mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
+      mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = finishRecording;
+
+      mediaRecorder.start(1000);
+
+      // UI en grabación
+      startBtn.style.display = 'none';
+      pauseBtn.style.display = 'inline-block';
+      pauseBtn.textContent = '⏸️ Pausar';
+      stopBtn.style.display = 'inline-block';
+      recBadge.style.display = 'flex';
+
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        timerText.textContent = `REC ${formatTime(secondsElapsed)}`;
+      }, 1000);
+
+    } catch (err) {
+      alert('No se pudo iniciar la grabación: ' + err.message);
+    }
+  });
+
+  pauseBtn.addEventListener('click', () => {
+    if (!mediaRecorder) return;
+    if (mediaRecorder.state === 'recording') {
+      mediaRecorder.pause();
+      clearInterval(timerInterval);
+      pauseBtn.textContent = '▶️ Reanudar';
+      timerText.textContent = `PAUSA ${formatTime(secondsElapsed)}`;
+    } else if (mediaRecorder.state === 'paused') {
+      mediaRecorder.resume();
+      pauseBtn.textContent = '⏸️ Pausar';
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        timerText.textContent = `REC ${formatTime(secondsElapsed)}`;
+      }, 1000);
+    }
+  });
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+    }
+    clearInterval(timerInterval);
+  }
+
+  stopBtn.addEventListener('click', stopRecording);
+
+  function finishRecording() {
+    startBtn.style.display = 'inline-block';
+    pauseBtn.style.display = 'none';
+    stopBtn.style.display = 'none';
+    recBadge.style.display = 'none';
+
+    const mimeType = currentType === 'mic' ? 'audio/webm' : 'video/webm';
+    const blob = new Blob(recordedChunks, { type: mimeType });
+
+    if (outputBlobUrl) URL.revokeObjectURL(outputBlobUrl);
+    outputBlobUrl = URL.createObjectURL(blob);
+
+    previewVideo.srcObject = null;
+    previewVideo.src = outputBlobUrl;
+    previewVideo.controls = true;
+    previewVideo.muted = false;
+
+    const ext = currentType === 'mic' ? 'webm' : 'webm';
+    const now = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `grabacion-${currentType}-${now}.${ext}`;
+
+    recInfo.textContent = `🎬 Grabación completada (${formatTime(secondsElapsed)})`;
+    recSize.textContent = `Tamaño: ${(blob.size / (1024 * 1024)).toFixed(2)} MB · Formato WebM`;
+    dlVideoBtn.href = outputBlobUrl;
+    dlVideoBtn.download = filename;
+    dlCard.style.display = 'flex';
+  }
+</script>
+</body>
+</html>

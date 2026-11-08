@@ -22,10 +22,14 @@ ALLOWED_STATIC_FILES = {
     "/": "index.html",
     "/index.html": "index.html",
     "/qr.html": "qr.html",
+    "/escaner-qr.html": "escaner-qr.html",
     "/yt-mp3.html": "yt-mp3.html",
     "/imagenes.html": "imagenes.html",
     "/pdf-img.html": "pdf-img.html",
+    "/pdf-herramientas.html": "pdf-herramientas.html",
     "/audio-video.html": "audio-video.html",
+    "/grabador.html": "grabador.html",
+    "/seguridad.html": "seguridad.html",
     "/formatos.html": "formatos.html",
 }
 
