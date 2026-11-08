@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>Mis MiniApps 💕🎵</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose: #e8507a;
+      --pink: #f9c6d0;
+      --deep: #3a0a1e;
+      --gold: #d4a24c;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 30%, #7a1040 0%, var(--deep) 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 2rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 24px;
+      padding: 2.8rem 2.2rem;
+      width: 100%;
+      max-width: 520px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    .card h1 {
+      font-size: 2rem;
+      color: var(--pink);
+      margin-bottom: 0.5rem;
+    }
+
+    .card p.sub {
+      font-size: 0.9rem;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 2rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.1rem;
+    }
+
+    .app-btn {
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+      padding: 1.25rem 1.4rem;
+      border-radius: 18px;
+      text-decoration: none;
+      color: #fff;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(232,80,122,0.35);
+      transition: transform 0.18s ease, background 0.2s ease, border-color 0.2s ease;
+      text-align: left;
+    }
+
+    .app-btn:hover {
+      transform: translateY(-3px);
+      background: rgba(232,80,122,0.22);
+      border-color: var(--rose);
+    }
+
+    .icon {
+      font-size: 2.2rem;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: rgba(232,80,122,0.2);
+      flex-shrink: 0;
+    }
+
+    .info h2 {
+      font-size: 1.15rem;
+      color: var(--pink);
+      margin-bottom: 0.25rem;
+    }
+
+    .info p {
+      font-size: 0.83rem;
+      color: rgba(255,255,255,0.68);
+      line-height: 1.35;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-top: 0.4rem;
+      font-size: 0.7rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: 50px;
+      background: rgba(212,162,76,0.2);
+      color: var(--gold);
+      border: 1px solid rgba(212,162,76,0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Mis MiniApps ✨</h1>
+    <p class="sub">Selecciona la herramienta que deseas abrir</p>
+
+    <div class="grid">
+      <a href="qr.html" class="app-btn">
+        <div class="icon">💕</div>
+        <div class="info">
+          <h2>Generador QR</h2>
+          <p>Convierte cualquier enlace en un código QR descargable en PNG al instante.</p>
+          <span class="badge">✓ 100% Web · Funciona sin servidor</span>
+        </div>
+      </a>
+
+      <a href="yt-mp3.html" class="app-btn">
+        <div class="icon">🎵</div>
+        <div class="info">
+          <h2>YouTube → MP3</h2>
+          <p>Extrae y descarga el audio en formato MP3 a 320 kbps de videos y Shorts.</p>
+          <span class="badge">⚡ Requiere servidor.py o nube</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

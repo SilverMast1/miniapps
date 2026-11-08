@@ -1,0 +1,26 @@
+# Ignorar variables de entorno y secretos
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.json
+
+# Ignorar caché de Python y entornos virtuales
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Ignorar configuraciones locales del editor y sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Ignorar archivos de audio descargados accidentalmente en la carpeta
+*.mp3
+*.m4a
+*.wav

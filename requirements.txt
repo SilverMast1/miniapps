@@ -1,0 +1,2 @@
+# El servidor local (servidor.py) utiliza únicamente la librería estándar de Python 3.
+# No requiere instalar paquetes adicionales para funcionar.

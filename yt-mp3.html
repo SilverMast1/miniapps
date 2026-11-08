@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https:; media-src 'self' https: blob:;"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>YouTube → MP3 🎵</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose: #e8507a;
+      --pink: #f9c6d0;
+      --deep: #3a0a1e;
+      --gold: #d4a24c;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 30%, #7a1040 0%, var(--deep) 70%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 2rem;
+    }
+
+    .nav-bar {
+      margin-bottom: 1.2rem;
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--pink);
+      font-size: 0.85rem;
+      padding: 0.45rem 1rem;
+      border-radius: 50px;
+      border: 1px solid rgba(232,80,122,0.35);
+      background: rgba(255,255,255,0.06);
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: var(--rose);
+      color: #fff;
+      border-color: var(--rose);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    .card h1 {
+      font-size: 1.8rem;
+      color: var(--pink);
+      margin-bottom: 0.4rem;
+    }
+
+    .card p.sub {
+      font-size: 0.85rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      margin-bottom: 1.8rem;
+    }
+
+    .input-wrap {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(232,80,122,0.4);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]::placeholder { color: rgba(255,255,255,0.35); }
+    input[type="text"]:focus { border-color: var(--rose); }
+
+    #gen-btn {
+      padding: 0.75rem 1.4rem;
+      background: var(--rose);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+    #gen-btn:hover:not(:disabled) { background: #c73d65; transform: scale(1.03); }
+    #gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #error-msg {
+      display: none;
+      color: #ff6b8a;
+      font-size: 0.85rem;
+      margin-top: -0.6rem;
+      margin-bottom: 0.8rem;
+      line-height: 1.45;
+      background: rgba(255, 107, 138, 0.1);
+      border: 1px solid rgba(255, 107, 138, 0.3);
+      border-radius: 12px;
+      padding: 0.75rem;
+    }
+
+    /* Spinner */
+    #spinner-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8rem;
+      margin: 0.5rem 0;
+    }
+    #spinner-wrap.visible { display: flex; }
+
+    .spinner {
+      width: 38px; height: 38px;
+      border: 3px solid rgba(255,255,255,0.12);
+      border-top-color: var(--rose);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner-text { font-size: 0.85rem; color: rgba(255,255,255,0.55); }
+
+    /* Resultado */
+    #result-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+      animation: fadeUp 0.4s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #result-wrap.visible { display: flex; }
+
+    .music-icon {
+      font-size: 3.5rem;
+      filter: drop-shadow(0 0 18px rgba(232,80,122,0.7));
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.08); }
+    }
+
+    #track-title {
+      font-size: 0.95rem;
+      color: var(--pink);
+      font-weight: 600;
+      max-width: 360px;
+      line-height: 1.4;
+    }
+
+    #download-btn {
+      background: transparent;
+      border: 1px solid var(--rose);
+      color: var(--pink);
+      font-size: 0.95rem;
+      padding: 0.65rem 2rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    #download-btn:hover { background: var(--rose); color: #fff; transform: scale(1.04); }
+
+    .info-badge {
+      margin-top: 1.4rem;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.4;
+    }
+    .info-badge code {
+      background: rgba(255,255,255,0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      color: var(--pink);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav-bar">
+  <a href="index.html" class="nav-link">🏠 Inicio</a>
+  <a href="qr.html" class="nav-link">💕 Generador QR</a>
+  <a href="yt-mp3.html" class="nav-link active">🎵 YouTube → MP3</a>
+</nav>
+
+<div class="card">
+  <h1>YouTube → MP3 🎵</h1>
+  <p class="sub">Pega el link y descarga el audio</p>
+
+  <div class="input-wrap">
+    <input type="text" id="url-input"
+      placeholder="https://youtube.com/watch?v=..."
+      autocomplete="off" spellcheck="false"/>
+    <button id="gen-btn">Convertir</button>
+  </div>
+
+  <p id="error-msg"></p>
+
+  <div id="spinner-wrap">
+    <div class="spinner"></div>
+    <span class="spinner-text" id="spinner-text">Procesando audio…</span>
+  </div>
+
+  <div id="result-wrap">
+    <div class="music-icon">🎶</div>
+    <p id="track-title"></p>
+    <button id="download-btn">⬇ Descargar MP3</button>
+  </div>
+
+  <p class="info-badge">
+    💡 Para evitar bloqueos CORS de navegador, ejecuta <code>abrir-yt-mp3.bat</code> o <code>python servidor.py</code>.
+  </p>
+</div>
+
+<script>
+  const input       = document.getElementById('url-input');
+  const genBtn      = document.getElementById('gen-btn');
+  const errorMsg    = document.getElementById('error-msg');
+  const spinnerWrap = document.getElementById('spinner-wrap');
+  const spinnerText = document.getElementById('spinner-text');
+  const resultWrap  = document.getElementById('result-wrap');
+  const trackTitle  = document.getElementById('track-title');
+  const dlBtn       = document.getElementById('download-btn');
+
+  let pendingYtUrl  = '';
+  let directFileUrl = '';
+  let audioTitle    = '';
+
+  function isYouTube(url) {
+    return /^https?:\/\/(www\.)?(youtube\.com\/(watch\?.*v=|shorts\/|live\/)|youtu\.be\/)/.test(url);
+  }
+
+  function cleanYouTubeUrl(raw) {
+    try {
+      const u = new URL(raw);
+      if (u.hostname === 'youtu.be') {
+        const vid = u.pathname.slice(1).split('/')[0];
+        return vid ? `https://www.youtube.com/watch?v=${vid}` : raw;
+      }
+      if (u.pathname.startsWith('/shorts/')) {
+        const vid = u.pathname.split('/')[2];
+        return vid ? `https://www.youtube.com/watch?v=${vid}` : raw;
+      }
+      const v = u.searchParams.get('v');
+      if (v) return `https://www.youtube.com/watch?v=${v}`;
+    } catch (_) {}
+    return raw;
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = '⚠️ ' + msg;
+    errorMsg.style.display = 'block';
+    spinnerWrap.classList.remove('visible');
+    resultWrap.classList.remove('visible');
+    genBtn.disabled = false;
+  }
+
+  function reset() {
+    errorMsg.style.display = 'none';
+    spinnerWrap.classList.remove('visible');
+    resultWrap.classList.remove('visible');
+    pendingYtUrl  = '';
+    directFileUrl = '';
+    audioTitle    = '';
+  }
+
+  async function convert() {
+    const url = input.value.trim();
+    reset();
+
+    if (!isYouTube(url)) {
+      showError('Ingresa un link de YouTube válido.');
+      return;
+    }
+
+    const cleanUrl = cleanYouTubeUrl(url);
+    input.value = cleanUrl;
+    pendingYtUrl = cleanUrl;
+
+    genBtn.disabled = true;
+    spinnerWrap.classList.add('visible');
+    spinnerText.textContent = 'Obteniendo audio…';
+
+    try {
+      // Llama al proxy local o de servidor (evita CORS y mantiene seguridad)
+      const res = await fetch('/api/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: cleanUrl }),
+        signal: AbortSignal.timeout(30000),
+      });
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('NO_BACKEND');
+      }
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        showError(data.error || 'Error del servidor.');
+        return;
+      }
+
+      directFileUrl = data.url || '';
+      audioTitle = data.filename ? data.filename.replace(/\.[^.]+$/, '') : 'audio';
+      spinnerWrap.classList.remove('visible');
+      trackTitle.textContent = audioTitle;
+      resultWrap.classList.add('visible');
+      genBtn.disabled = false;
+
+    } catch (e) {
+      if (e.message === 'NO_BACKEND' || e instanceof SyntaxError || e.message.includes('Failed to fetch')) {
+        showError('El servidor Python no está activo en este enlace estático. Abre "abrir-yt-mp3.bat" en tu carpeta o ejecuta "python servidor.py" para habilitar las descargas.');
+      } else {
+        showError('Error: ' + (e.name === 'TimeoutError' ? 'Tiempo agotado.' : e.message));
+      }
+    }
+  }
+
+  dlBtn.addEventListener('click', async () => {
+    if (!pendingYtUrl) return;
+
+    dlBtn.disabled = true;
+    dlBtn.textContent = '⏳ Descargando…';
+
+    const a = document.createElement('a');
+    a.href     = `/api/download?url=${encodeURIComponent(pendingYtUrl)}`;
+    a.download = (audioTitle || 'audio') + '.mp3';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => {
+      dlBtn.disabled = false;
+      dlBtn.textContent = '⬇ Descargar MP3';
+    }, 3000);
+  });
+
+  genBtn.addEventListener('click', convert);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') convert(); });
+</script>
+
+</body>
+</html>
