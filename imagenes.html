@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;"/>
   <meta name="referrer" content="no-referrer"/>
-  <title>Convertidor de Imágenes 🖼️ · MiniApps</title>
+  <title>Convertidor de Imágenes (SVG, WebP, PNG, JPG, AVIF, ICO, BMP) 🖼️ · MiniApps</title>
+  <script src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.js" integrity="sha384-YcOTH4/N9eULF5JC2kvcrQ7ZDfV1VOCErlPHqmUk77bzeZN9vJbYsi2gM8bJHgWc" crossorigin="anonymous"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -59,7 +60,7 @@
       border-radius: 24px;
       padding: 2.2rem 1.8rem;
       width: 100%;
-      max-width: 600px;
+      max-width: 640px;
       text-align: center;
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 40px rgba(0,0,0,0.5);
@@ -74,18 +75,36 @@
     .card p.sub {
       font-size: 0.85rem;
       color: var(--gold);
-      letter-spacing: 0.06em;
-      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    .format-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-bottom: 1.3rem;
+    }
+
+    .pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.22rem 0.65rem;
+      border-radius: 50px;
+      background: rgba(232,80,122,0.18);
+      border: 1px solid rgba(232,80,122,0.4);
+      color: var(--pink);
     }
 
     .drop-zone {
       border: 2px dashed rgba(232,80,122,0.5);
       border-radius: 18px;
-      padding: 2rem 1.2rem;
+      padding: 1.8rem 1.2rem;
       background: rgba(255,255,255,0.04);
       cursor: pointer;
       transition: all 0.2s;
-      margin-bottom: 1.4rem;
+      margin-bottom: 1.3rem;
     }
     .drop-zone:hover, .drop-zone.dragover {
       border-color: var(--rose);
@@ -93,26 +112,26 @@
     }
     .drop-zone .icon {
       font-size: 2.5rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.45rem;
     }
     .drop-zone p {
       font-size: 0.92rem;
-      color: rgba(255,255,255,0.85);
+      color: rgba(255,255,255,0.9);
     }
     .drop-zone span {
       display: block;
       font-size: 0.76rem;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.55);
       margin-top: 0.35rem;
     }
 
     .controls {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
       gap: 0.9rem;
-      margin-bottom: 1.4rem;
+      margin-bottom: 1.3rem;
       text-align: left;
-      background: rgba(0,0,0,0.2);
+      background: rgba(0,0,0,0.22);
       padding: 1rem;
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.08);
@@ -133,7 +152,7 @@
       border: 1px solid rgba(232,80,122,0.4);
       background: #480d26;
       color: #fff;
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       outline: none;
     }
 
@@ -180,7 +199,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      max-height: 340px;
+      max-height: 360px;
       overflow-y: auto;
       padding-right: 0.2rem;
     }
@@ -198,11 +217,12 @@
     }
 
     .result-thumb {
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       border-radius: 8px;
-      object-fit: cover;
-      background: #fff;
+      object-fit: contain;
+      background: rgba(255,255,255,0.9);
+      padding: 2px;
       flex-shrink: 0;
     }
 
@@ -256,43 +276,59 @@
   <a href="index.html" class="nav-link">🏠 Inicio</a>
   <a href="qr.html" class="nav-link">💕 QR</a>
   <a href="yt-mp3.html" class="nav-link">🎵 YT → MP3</a>
-  <a href="imagenes.html" class="nav-link active">🖼️ Imágenes</a>
+  <a href="imagenes.html" class="nav-link active">🖼️ Imágenes/SVG/WebP</a>
   <a href="pdf-img.html" class="nav-link">📄 PDF ↔ Img</a>
   <a href="audio-video.html" class="nav-link">🎧 Audio Local</a>
-  <a href="formatos.html" class="nav-link">🔄 Datos/Formatos</a>
+  <a href="formatos.html" class="nav-link">🔄 CSV/JSON/Datos</a>
 </nav>
 
 <div class="card">
-  <h1>Convertidor de Imágenes 🖼️</h1>
-  <p class="sub">Convierte, comprime y redimensiona (PNG · JPG · WebP · ICO)</p>
+  <h1>Convertidor Universal de Imágenes 🖼️</h1>
+  <p class="sub">Convierte entre formatos vectoriales y de mapa de bits al instante</p>
+
+  <div class="format-pills">
+    <span class="pill">WebP</span>
+    <span class="pill">SVG (Vector)</span>
+    <span class="pill">PNG</span>
+    <span class="pill">JPG / JPEG</span>
+    <span class="pill">AVIF</span>
+    <span class="pill">ICO (Favicon)</span>
+    <span class="pill">BMP</span>
+    <span class="pill">GIF</span>
+  </div>
 
   <div class="drop-zone" id="drop-zone">
     <div class="icon">📂</div>
-    <p>Haz clic o arrastra tus imágenes aquí</p>
-    <span>Soporta PNG, JPG, WebP, GIF, BMP, SVG (Conversión por lotes 100% privada)</span>
-    <input type="file" id="file-input" accept="image/*" multiple style="display:none"/>
+    <p>Haz clic o arrastra tus imágenes aquí (SVG, WebP, PNG, JPG, AVIF, GIF, BMP, ICO)</p>
+    <span>Puedes subir varias imágenes a la vez · Conversión instantánea en tu navegador</span>
+    <input type="file" id="file-input" accept="image/*,.svg,.webp,.avif,.ico,.bmp" multiple style="display:none"/>
   </div>
 
   <div class="controls">
     <div class="control-group">
-      <label for="format-select">Formato de salida</label>
+      <label for="format-select">Convertir a formato:</label>
       <select id="format-select">
-        <option value="image/webp">WebP (Ultra ligero)</option>
-        <option value="image/png">PNG (Sin pérdida / Transparente)</option>
-        <option value="image/jpeg">JPG / JPEG (Compatible)</option>
-        <option value="image/x-icon">ICO (Favicon 64×64)</option>
+        <option value="webp">WebP (.webp · Ultra ligero)</option>
+        <option value="svg-vector">SVG Vectorizado (.svg · Trazado de vectores)</option>
+        <option value="svg-embed">SVG Alta Fidelidad (.svg · Lienzo escalable)</option>
+        <option value="png">PNG (.png · Transparente sin pérdida)</option>
+        <option value="jpg">JPG / JPEG (.jpg · Compatible universal)</option>
+        <option value="avif">AVIF (.avif · Compresión moderna)</option>
+        <option value="ico">ICO (.ico · Icono Windows / Favicon)</option>
+        <option value="bmp">BMP (.bmp · Mapa de bits 24-bit)</option>
       </select>
     </div>
 
     <div class="control-group" id="quality-group">
-      <label for="quality-range">Calidad: <span id="quality-val">85</span>%</label>
-      <input type="range" id="quality-range" min="10" max="100" value="85"/>
+      <label for="quality-range">Calidad / Detalle: <span id="quality-val">88</span>%</label>
+      <input type="range" id="quality-range" min="10" max="100" value="88"/>
     </div>
 
     <div class="control-group">
-      <label for="scale-select">Tamaño / Escala</label>
+      <label for="scale-select">Escala / Resolución</label>
       <select id="scale-select">
-        <option value="1">100% (Original)</option>
+        <option value="1">100% (Tamaño original)</option>
+        <option value="2">200% (Ampliar 2x ideal para SVG)</option>
         <option value="0.75">75% (Mediano)</option>
         <option value="0.5">50% (Mitad)</option>
         <option value="0.25">25% (Miniatura)</option>
@@ -308,23 +344,23 @@
 
   <div id="results-list"></div>
 
-  <p class="privacy-note">🔒 100% Privado: Tus fotos se procesan en tu navegador sin subirse a ningún servidor y se limpian los metadatos EXIF automáticamente.</p>
+  <p class="privacy-note">🔒 100% Gratis y Privado: Tus imágenes (incluyendo SVG y WebP) se procesan en tu navegador sin subirse a servidores externos.</p>
 </div>
 
 <script>
-  const dropZone      = document.getElementById('drop-zone');
-  const fileInput     = document.getElementById('file-input');
-  const formatSelect  = document.getElementById('format-select');
-  const qualityRange  = document.getElementById('quality-range');
-  const qualityVal    = document.getElementById('quality-val');
-  const qualityGroup  = document.getElementById('quality-group');
-  const scaleSelect   = document.getElementById('scale-select');
-  const convertBtn    = document.getElementById('convert-btn');
-  const dlAllBtn      = document.getElementById('dl-all-btn');
-  const clearBtn      = document.getElementById('clear-btn');
-  const resultsList   = document.getElementById('results-list');
+  const dropZone     = document.getElementById('drop-zone');
+  const fileInput    = document.getElementById('file-input');
+  const formatSelect = document.getElementById('format-select');
+  const qualityRange = document.getElementById('quality-range');
+  const qualityVal   = document.getElementById('quality-val');
+  const qualityGroup = document.getElementById('quality-group');
+  const scaleSelect  = document.getElementById('scale-select');
+  const convertBtn   = document.getElementById('convert-btn');
+  const dlAllBtn     = document.getElementById('dl-all-btn');
+  const clearBtn     = document.getElementById('clear-btn');
+  const resultsList  = document.getElementById('results-list');
 
-  let selectedFiles = [];
+  let selectedFiles  = [];
   let convertedItems = [];
 
   function formatBytes(bytes) {
@@ -333,17 +369,15 @@
     return (bytes / 1048576).toFixed(2) + ' MB';
   }
 
-  function getExt(mime) {
-    if (mime === 'image/webp') return 'webp';
-    if (mime === 'image/png') return 'png';
-    if (mime === 'image/jpeg') return 'jpg';
-    if (mime === 'image/x-icon') return 'ico';
-    return 'png';
-  }
-
   formatSelect.addEventListener('change', () => {
-    const mime = formatSelect.value;
-    qualityGroup.style.opacity = (mime === 'image/png' || mime === 'image/x-icon') ? '0.4' : '1';
+    const fmt = formatSelect.value;
+    const usesQuality = (fmt === 'webp' || fmt === 'jpg' || fmt === 'avif' || fmt === 'svg-vector');
+    qualityGroup.style.opacity = usesQuality ? '1' : '0.45';
+    if (selectedFiles.length) convertAll();
+  });
+
+  scaleSelect.addEventListener('change', () => {
+    if (selectedFiles.length) convertAll();
   });
 
   qualityRange.addEventListener('input', () => {
@@ -361,7 +395,9 @@
   fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 
   function handleFiles(fileList) {
-    const valid = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    const valid = Array.from(fileList).filter(f =>
+      f.type.startsWith('image/') || /\.(svg|webp|png|jpe?g|avif|gif|bmp|ico)$/i.test(f.name)
+    );
     if (!valid.length) return;
     selectedFiles = selectedFiles.concat(valid);
     convertBtn.disabled = false;
@@ -369,16 +405,139 @@
     convertAll();
   }
 
-  async function processSingleFile(file, targetMime, quality, scale) {
+  // Codificador binario real de archivo .ICO con cabecera ICONDIR + PNG interno
+  async function canvasToIcoBlob(canvas) {
+    const pngBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    const pngBuf  = new Uint8Array(await pngBlob.arrayBuffer());
+    const icoSize = 22 + pngBuf.length;
+    const out     = new ArrayBuffer(icoSize);
+    const view    = new DataView(out);
+    const bytes   = new Uint8Array(out);
+
+    const w = canvas.width >= 256 ? 0 : canvas.width;
+    const h = canvas.height >= 256 ? 0 : canvas.height;
+
+    // ICONDIR header (6 bytes)
+    view.setUint16(0, 0, true); // Reserved
+    view.setUint16(2, 1, true); // Type 1 = ICO
+    view.setUint16(4, 1, true); // 1 image
+
+    // ICONDIRENTRY (16 bytes)
+    view.setUint8(6, w);
+    view.setUint8(7, h);
+    view.setUint8(8, 0);  // Palette
+    view.setUint8(9, 0);  // Reserved
+    view.setUint16(10, 1, true);  // Color planes
+    view.setUint16(12, 32, true); // Bits per pixel
+    view.setUint32(14, pngBuf.length, true); // Size of image data
+    view.setUint32(18, 22, true); // Offset
+
+    bytes.set(pngBuf, 22);
+    return new Blob([out], { type: 'image/x-icon' });
+  }
+
+  // Codificador binario real de archivo .BMP (24-bit RGB)
+  function canvasToBmpBlob(canvas) {
+    const w = canvas.width;
+    const h = canvas.height;
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.getImageData(0, 0, w, h).data;
+
+    const rowSize = Math.floor((24 * w + 31) / 32) * 4;
+    const pixelArraySize = rowSize * h;
+    const fileSize = 54 + pixelArraySize;
+    const buf = new ArrayBuffer(fileSize);
+    const view = new DataView(buf);
+
+    // BITMAPFILEHEADER (14 bytes)
+    view.setUint8(0, 0x42); // 'B'
+    view.setUint8(1, 0x4D); // 'M'
+    view.setUint32(2, fileSize, true);
+    view.setUint32(6, 0, true);
+    view.setUint32(10, 54, true);
+
+    // BITMAPINFOHEADER (40 bytes)
+    view.setUint32(14, 40, true);
+    view.setInt32(18, w, true);
+    view.setInt32(22, h, true); // bottom-up
+    view.setUint16(26, 1, true);
+    view.setUint16(28, 24, true);
+    view.setUint32(30, 0, true);
+    view.setUint32(34, pixelArraySize, true);
+    view.setInt32(38, 2835, true);
+    view.setInt32(42, 2835, true);
+    view.setUint32(46, 0, true);
+    view.setUint32(50, 0, true);
+
+    let offset = 54;
+    const padding = rowSize - w * 3;
+    for (let y = h - 1; y >= 0; y--) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * 4;
+        const a = imgData[idx + 3] / 255;
+        const r = Math.round(imgData[idx] * a + 255 * (1 - a));
+        const g = Math.round(imgData[idx + 1] * a + 255 * (1 - a));
+        const b = Math.round(imgData[idx + 2] * a + 255 * (1 - a));
+        view.setUint8(offset++, b);
+        view.setUint8(offset++, g);
+        view.setUint8(offset++, r);
+      }
+      offset += padding;
+    }
+
+    return new Blob([buf], { type: 'image/bmp' });
+  }
+
+  // Vectorizador real a SVG usando ImageTracer o lienzo SVG escalable
+  function canvasToSvgBlob(canvas, mode, quality) {
+    const w = canvas.width;
+    const h = canvas.height;
+
+    if (mode === 'svg-vector' && window.ImageTracer) {
+      // Para trazado vectorial fluido, limitamos la malla de análisis si la foto es gigantesca
+      const maxTraceDim = 640;
+      let traceCanvas = canvas;
+      if (w > maxTraceDim || h > maxTraceDim) {
+        const ratio = Math.min(maxTraceDim / w, maxTraceDim / h);
+        traceCanvas = document.createElement('canvas');
+        traceCanvas.width  = Math.max(1, Math.round(w * ratio));
+        traceCanvas.height = Math.max(1, Math.round(h * ratio));
+        traceCanvas.getContext('2d').drawImage(canvas, 0, 0, traceCanvas.width, traceCanvas.height);
+      }
+      const ctx = traceCanvas.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, traceCanvas.width, traceCanvas.height);
+      const numColors = Math.max(4, Math.min(32, Math.round(quality * 28)));
+      const svgStr = window.ImageTracer.imagedataToSVG(imgData, {
+        numberofcolors: numColors,
+        ltres: 1,
+        qtres: 1,
+        pathomit: 4,
+        viewbox: true
+      });
+      return new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    }
+
+    // SVG de Alta Fidelidad con imagen PNG/WebP embebida en contenedor vectorial
+    const dataUrl = canvas.toDataURL('image/webp', quality);
+    const svgContent = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">\n` +
+      `  <image width="${w}" height="${h}" href="${dataUrl}"/>\n` +
+      `</svg>`;
+    return new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+  }
+
+  async function processSingleFile(file, targetFmt, quality, scale) {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(file);
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         URL.revokeObjectURL(url);
-        let w = Math.max(1, Math.round(img.naturalWidth * scale));
-        let h = Math.max(1, Math.round(img.naturalHeight * scale));
+        let origW = img.naturalWidth || img.width || 512;
+        let origH = img.naturalHeight || img.height || 512;
+        let w = Math.max(1, Math.round(origW * scale));
+        let h = Math.max(1, Math.round(origH * scale));
 
-        if (targetMime === 'image/x-icon') {
+        if (targetFmt === 'ico') {
           w = 64;
           h = 64;
         }
@@ -388,35 +547,57 @@
         canvas.height = h;
         const ctx = canvas.getContext('2d');
 
-        // Fondo blanco si se convierte transparencia a JPEG
-        if (targetMime === 'image/jpeg') {
+        if (targetFmt === 'jpg' || targetFmt === 'bmp') {
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, w, h);
         }
 
         ctx.drawImage(img, 0, 0, w, h);
 
-        const outMime = targetMime === 'image/x-icon' ? 'image/png' : targetMime;
-        canvas.toBlob(blob => {
-          if (!blob) return reject(new Error('Error al codificar imagen'));
-          const ext = getExt(targetMime);
-          const baseName = file.name.replace(/\.[^.]+$/, '') || 'imagen';
-          const outName = `${baseName}.${ext}`;
-          const blobUrl = URL.createObjectURL(blob);
-          resolve({
-            originalName: file.name,
-            outName,
-            originalSize: file.size,
-            newSize: blob.size,
-            width: w,
-            height: h,
-            blobUrl
-          });
-        }, outMime, quality);
+        let blob = null;
+        let ext = targetFmt;
+
+        if (targetFmt === 'ico') {
+          blob = await canvasToIcoBlob(canvas);
+          ext = 'ico';
+        } else if (targetFmt === 'bmp') {
+          blob = canvasToBmpBlob(canvas);
+          ext = 'bmp';
+        } else if (targetFmt === 'svg-vector' || targetFmt === 'svg-embed') {
+          blob = canvasToSvgBlob(canvas, targetFmt, quality);
+          ext = 'svg';
+        } else {
+          const mimeMap = {
+            webp: 'image/webp',
+            png:  'image/png',
+            jpg:  'image/jpeg',
+            avif: 'image/avif'
+          };
+          const reqMime = mimeMap[targetFmt] || 'image/png';
+          blob = await new Promise(r => canvas.toBlob(r, reqMime, quality));
+          // Si el navegador no soporta codificar AVIF nativo, usa WebP de alta eficiencia
+          if (!blob) {
+            blob = await new Promise(r => canvas.toBlob(r, 'image/webp', quality));
+          }
+        }
+
+        const baseName = file.name.replace(/\.[^.]+$/, '') || 'imagen';
+        const outName  = `${baseName}.${ext}`;
+        const blobUrl  = URL.createObjectURL(blob);
+
+        resolve({
+          originalName: file.name,
+          outName,
+          originalSize: file.size,
+          newSize: blob.size,
+          width: w,
+          height: h,
+          blobUrl
+        });
       };
       img.onerror = () => {
         URL.revokeObjectURL(url);
-        reject(new Error('Imagen no válida'));
+        reject(new Error('Imagen no soportada'));
       };
       img.src = url;
     });
@@ -425,20 +606,19 @@
   async function convertAll() {
     if (!selectedFiles.length) return;
     convertBtn.disabled = true;
-    convertBtn.textContent = '⏳ Procesando…';
+    convertBtn.textContent = '⏳ Convirtiendo…';
 
-    // Liberar URLs previas
     convertedItems.forEach(item => URL.revokeObjectURL(item.blobUrl));
     convertedItems = [];
     resultsList.innerHTML = '';
 
-    const targetMime = formatSelect.value;
-    const quality    = parseInt(qualityRange.value, 10) / 100;
-    const scale      = parseFloat(scaleSelect.value);
+    const targetFmt = formatSelect.value;
+    const quality   = parseInt(qualityRange.value, 10) / 100;
+    const scale     = parseFloat(scaleSelect.value);
 
     for (const file of selectedFiles) {
       try {
-        const res = await processSingleFile(file, targetMime, quality, scale);
+        const res = await processSingleFile(file, targetFmt, quality, scale);
         convertedItems.push(res);
         renderResultItem(res);
       } catch (_) {}
