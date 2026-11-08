@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https:; media-src 'self' https: blob:;"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://rue-cobalt.xenon.zone https://cobaltapi.cjs.nz https://api.cobalt.liubquanti.click; media-src 'self' https: blob:;"/>
   <meta name="referrer" content="no-referrer"/>
   <title>YouTube → MP3 🎵</title>
   <style>
@@ -184,20 +184,8 @@
       cursor: pointer;
       transition: background 0.2s, color 0.2s, transform 0.15s;
     }
-    #download-btn:hover { background: var(--rose); color: #fff; transform: scale(1.04); }
-
-    .info-badge {
-      margin-top: 1.4rem;
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.45);
-      line-height: 1.4;
-    }
-    .info-badge code {
-      background: rgba(255,255,255,0.1);
-      padding: 0.15rem 0.4rem;
-      border-radius: 6px;
-      color: var(--pink);
-    }
+    #download-btn:hover:not(:disabled) { background: var(--rose); color: #fff; transform: scale(1.04); }
+    #download-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -210,7 +198,7 @@
 
 <div class="card">
   <h1>YouTube → MP3 🎵</h1>
-  <p class="sub">Pega el link y descarga el audio</p>
+  <p class="sub">Pega el link y descarga el audio al instante</p>
 
   <div class="input-wrap">
     <input type="text" id="url-input"
@@ -231,10 +219,6 @@
     <p id="track-title"></p>
     <button id="download-btn">⬇ Descargar MP3</button>
   </div>
-
-  <p class="info-badge">
-    💡 Para evitar bloqueos CORS de navegador, ejecuta <code>abrir-yt-mp3.bat</code> o <code>python servidor.py</code>.
-  </p>
 </div>
 
 <script>
@@ -247,8 +231,17 @@
   const trackTitle  = document.getElementById('track-title');
   const dlBtn       = document.getElementById('download-btn');
 
+  // Instancias públicas de Cobalt con soporte CORS nativo (Access-Control-Allow-Origin: *)
+  // Funciona 100% en GitHub Pages directo desde el navegador sin exponer claves ni requerir backend.
+  const COBALT_BROWSER_INSTANCES = [
+    'https://rue-cobalt.xenon.zone',
+    'https://cobaltapi.cjs.nz'
+  ];
+
   let pendingYtUrl  = '';
   let directFileUrl = '';
+  let tunnelCreatedAt = 0;
+  let tunnelConsumed  = false;
   let audioTitle    = '';
 
   function isYouTube(url) {
@@ -272,6 +265,15 @@
     return raw;
   }
 
+  function isSafeHttpsUrl(rawUrl) {
+    try {
+      const parsed = new URL(rawUrl);
+      return parsed.protocol === 'https:';
+    } catch (_) {
+      return false;
+    }
+  }
+
   function showError(msg) {
     errorMsg.textContent = '⚠️ ' + msg;
     errorMsg.style.display = 'block';
@@ -284,9 +286,70 @@
     errorMsg.style.display = 'none';
     spinnerWrap.classList.remove('visible');
     resultWrap.classList.remove('visible');
-    pendingYtUrl  = '';
-    directFileUrl = '';
-    audioTitle    = '';
+    pendingYtUrl    = '';
+    directFileUrl   = '';
+    tunnelCreatedAt = 0;
+    tunnelConsumed  = false;
+    audioTitle      = '';
+  }
+
+  async function resolveCobaltDirect(ytUrl) {
+    const payload = JSON.stringify({
+      url:           ytUrl,
+      downloadMode:  'audio',
+      audioFormat:   'mp3',
+      audioBitrate:  '320',
+      filenameStyle: 'pretty',
+    });
+
+    let lastErr = 'No se pudo conectar con los servidores de conversión.';
+
+    // 1. Intentar directamente desde el navegador contra las instancias con CORS habilitado
+    for (const apiBase of COBALT_BROWSER_INSTANCES) {
+      try {
+        const res = await fetch(apiBase + '/', {
+          method: 'POST',
+          headers: {
+            'Accept':       'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: payload,
+          signal: AbortSignal.timeout(15000),
+        });
+
+        const data = await res.json();
+        if ((data.status === 'tunnel' || data.status === 'redirect') && data.url && isSafeHttpsUrl(data.url)) {
+          return {
+            url:      data.url,
+            filename: data.filename || 'audio.mp3',
+            mode:     'direct',
+          };
+        }
+        lastErr = (data.error && data.error.code) ? data.error.code : ('Estado: ' + data.status);
+      } catch (e) {
+        lastErr = e.message || 'Error de red';
+      }
+    }
+
+    // 2. Fallback opcional al servidor local si se está ejecutando en localhost
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      const res = await fetch('/api/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: ytUrl }),
+        signal: AbortSignal.timeout(20000),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        return {
+          url:      `/api/download?url=${encodeURIComponent(ytUrl)}`,
+          filename: data.filename || 'audio.mp3',
+          mode:     'local',
+        };
+      }
+    }
+
+    throw new Error(lastErr);
   }
 
   async function convert() {
@@ -304,42 +367,23 @@
 
     genBtn.disabled = true;
     spinnerWrap.classList.add('visible');
-    spinnerText.textContent = 'Obteniendo audio…';
+    spinnerText.textContent = 'Obteniendo audio en 320kbps…';
 
     try {
-      // Llama al proxy local o de servidor (evita CORS y mantiene seguridad)
-      const res = await fetch('/api/convert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: cleanUrl }),
-        signal: AbortSignal.timeout(30000),
-      });
+      const data = await resolveCobaltDirect(cleanUrl);
 
-      const contentType = res.headers.get('content-type') || '';
-      if (!contentType.includes('application/json')) {
-        throw new Error('NO_BACKEND');
-      }
+      directFileUrl   = data.url;
+      tunnelCreatedAt = Date.now();
+      tunnelConsumed  = false;
+      audioTitle      = data.filename ? data.filename.replace(/\.[^.]+$/, '') : 'audio';
 
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        showError(data.error || 'Error del servidor.');
-        return;
-      }
-
-      directFileUrl = data.url || '';
-      audioTitle = data.filename ? data.filename.replace(/\.[^.]+$/, '') : 'audio';
       spinnerWrap.classList.remove('visible');
       trackTitle.textContent = audioTitle;
       resultWrap.classList.add('visible');
       genBtn.disabled = false;
 
     } catch (e) {
-      if (e.message === 'NO_BACKEND' || e instanceof SyntaxError || e.message.includes('Failed to fetch')) {
-        showError('El servidor Python no está activo en este enlace estático. Abre "abrir-yt-mp3.bat" en tu carpeta o ejecuta "python servidor.py" para habilitar las descargas.');
-      } else {
-        showError('Error: ' + (e.name === 'TimeoutError' ? 'Tiempo agotado.' : e.message));
-      }
+      showError('No se pudo convertir el video (' + (e.name === 'TimeoutError' ? 'Tiempo agotado' : e.message) + '). Intenta de nuevo en unos segundos.');
     }
   }
 
@@ -347,19 +391,34 @@
     if (!pendingYtUrl) return;
 
     dlBtn.disabled = true;
-    dlBtn.textContent = '⏳ Descargando…';
+    dlBtn.textContent = '⏳ Preparando descarga…';
 
-    const a = document.createElement('a');
-    a.href     = `/api/download?url=${encodeURIComponent(pendingYtUrl)}`;
-    a.download = (audioTitle || 'audio') + '.mp3';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    try {
+      let targetUrl = directFileUrl;
+      // Los túneles de Cobalt son de un solo uso y expiran tras ~60s; si ya se usó o expiró, pedimos uno fresco
+      if (!targetUrl || tunnelConsumed || (Date.now() - tunnelCreatedAt > 45000)) {
+        const fresh = await resolveCobaltDirect(pendingYtUrl);
+        targetUrl = fresh.url;
+        directFileUrl = targetUrl;
+        tunnelCreatedAt = Date.now();
+      }
+      tunnelConsumed = true;
 
-    setTimeout(() => {
-      dlBtn.disabled = false;
-      dlBtn.textContent = '⬇ Descargar MP3';
-    }, 3000);
+      const a = document.createElement('a');
+      a.href     = targetUrl;
+      a.download = (audioTitle || 'audio') + '.mp3';
+      a.rel      = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (e) {
+      showError('Error al iniciar la descarga. Haz clic en Convertir nuevamente.');
+    } finally {
+      setTimeout(() => {
+        dlBtn.disabled = false;
+        dlBtn.textContent = '⬇ Descargar MP3';
+      }, 2500);
+    }
   });
 
   genBtn.addEventListener('click', convert);

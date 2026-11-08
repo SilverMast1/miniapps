@@ -26,6 +26,8 @@ ALLOWED_STATIC_FILES = {
 }
 
 DEFAULT_COBALT_APIS = [
+    "https://rue-cobalt.xenon.zone",
+    "https://cobaltapi.cjs.nz",
     "https://api.cobalt.liubquanti.click",
     "https://cobalt.alpha.wolfy.love",
     "https://cobaltapi.squair.xyz",
