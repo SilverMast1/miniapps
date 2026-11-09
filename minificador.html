@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>Minificador & Embellecedor de Código 🗜️ · MiniApps</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose: #e8507a;
+      --pink: #f9c6d0;
+      --deep: #3a0a1e;
+      --gold: #d4a24c;
+      --green: #22c55e;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 30%, #7a1040 0%, var(--deep) 70%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #fff;
+      padding: 1.8rem 1rem;
+    }
+
+    .nav-bar {
+      margin-bottom: 1.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      max-width: 900px;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--pink);
+      font-size: 0.8rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 50px;
+      border: 1px solid rgba(232,80,122,0.35);
+      background: rgba(255,255,255,0.06);
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: var(--rose);
+      color: #fff;
+      border-color: var(--rose);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 24px;
+      padding: 2.2rem 1.8rem;
+      width: 100%;
+      max-width: 950px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+    }
+
+    .card h1 {
+      font-size: 1.8rem;
+      color: var(--pink);
+      margin-bottom: 0.35rem;
+    }
+
+    .card p.sub {
+      font-size: 0.85rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      margin-bottom: 1.4rem;
+    }
+
+    .top-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.25);
+      padding: 0.75rem 1.2rem;
+      border-radius: 14px;
+      margin-bottom: 1.2rem;
+    }
+
+    .select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+      color: var(--pink);
+    }
+
+    select {
+      padding: 0.45rem 0.8rem;
+      border-radius: 10px;
+      border: 1px solid rgba(232,80,122,0.4);
+      background: #480d26;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .btn-actions-row {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-action-tool {
+      padding: 0.45rem 1rem;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-action-tool.primary {
+      background: linear-gradient(135deg, var(--rose) 0%, #bd215b 100%);
+      color: #fff;
+    }
+    .btn-action-tool.secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .btn-action-tool:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* Textareas Grid */
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      text-align: left;
+      margin-bottom: 1.2rem;
+    }
+    @media (max-width: 768px) {
+      .editor-grid { grid-template-columns: 1fr; }
+    }
+
+    .editor-col label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--pink);
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      padding: 0.8rem;
+      border-radius: 12px;
+      border: 1px solid rgba(232,80,122,0.35);
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      resize: vertical;
+      outline: none;
+    }
+    textarea:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 10px rgba(232,80,122,0.4);
+    }
+
+    /* Stats */
+    .stats-card {
+      display: flex;
+      justify-content: space-around;
+      gap: 1rem;
+      flex-wrap: wrap;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.2rem;
+      font-size: 0.85rem;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .stat-label { font-size: 0.72rem; color: var(--pink); }
+    .stat-val { font-weight: 700; color: #fff; margin-top: 2px; }
+    .stat-val.savings { color: #4ade80; }
+
+    .bottom-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-download-res {
+      padding: 0.6rem 1.4rem;
+      border-radius: 10px;
+      border: none;
+      background: #10b981;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-download-res:hover { background: #059669; }
+
+    .privacy-tag {
+      margin-top: 1.5rem;
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <a class="nav-link" href="index.html">🏠 Inicio</a>
+  <a class="nav-link" href="documentos.html">📑 Docs & Excel</a>
+  <a class="nav-link" href="comparador.html">🔍 Comparador</a>
+  <a class="nav-link active" href="minificador.html">🗜️ Minificador</a>
+  <a class="nav-link" href="formatos.html">🔄 Formatos</a>
+  <a class="nav-link" href="seguridad.html">🛡️ Ciberseguridad</a>
+</div>
+
+<div class="card">
+  <h1>🗜️ Minificador & Embellecedor de Código</h1>
+  <p class="sub">Comprime para producción o formatea con sangría limpia (HTML, CSS, JS, JSON)</p>
+
+  <div class="top-controls">
+    <div class="select-wrap">
+      <span>Lenguaje:</span>
+      <select id="lang-select">
+        <option value="json" selected>JSON</option>
+        <option value="css">CSS</option>
+        <option value="html">HTML</option>
+        <option value="js">JavaScript</option>
+      </select>
+    </div>
+
+    <div class="btn-actions-row">
+      <button class="btn-action-tool primary" id="btn-minify">🗜️ Minificar (Comprimir)</button>
+      <button class="btn-action-tool secondary" id="btn-beautify">✨ Embellecer (Formatear)</button>
+    </div>
+  </div>
+
+  <div class="editor-grid">
+    <div class="editor-col">
+      <label>
+        <span>📥 Entrada / Código Original</span>
+        <button onclick="document.getElementById('file-in').click()" style="background:none;border:none;color:var(--pink);cursor:pointer;font-size:0.75rem">📂 Cargar archivo</button>
+        <input type="file" id="file-in" style="display:none"/>
+      </label>
+      <textarea id="code-input" placeholder="Pega aquí tu código HTML, CSS, JavaScript o JSON..."></textarea>
+    </div>
+
+    <div class="editor-col">
+      <label>
+        <span>📤 Salida / Resultado</span>
+        <button id="btn-copy-out" style="background:none;border:none;color:var(--pink);cursor:pointer;font-size:0.75rem">📋 Copiar</button>
+      </label>
+      <textarea id="code-output" placeholder="El resultado optimizado aparecerá aquí..." readonly></textarea>
+    </div>
+  </div>
+
+  <div class="stats-card">
+    <div class="stat-item">
+      <span class="stat-label">Tamaño Original</span>
+      <span class="stat-val" id="stat-orig">0 B</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Tamaño Salida</span>
+      <span class="stat-val" id="stat-out">0 B</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Ahorro de Espacio</span>
+      <span class="stat-val savings" id="stat-saved">0% (0 B)</span>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <button class="btn-download-res" id="btn-download">💾 Descargar Archivo</button>
+  </div>
+
+  <p class="privacy-tag">
+    🔒 <strong>100% Client-Side:</strong> Todo el procesamiento de cadenas y eliminación de espacios ocurre en la memoria local de tu navegador.
+  </p>
+</div>
+
+<script>
+  const langSelect  = document.getElementById('lang-select');
+  const codeInput   = document.getElementById('code-input');
+  const codeOutput  = document.getElementById('code-output');
+  const btnMinify   = document.getElementById('btn-minify');
+  const btnBeautify = document.getElementById('btn-beautify');
+  const btnCopyOut  = document.getElementById('btn-copy-out');
+  const btnDownload = document.getElementById('btn-download');
+  const fileIn      = document.getElementById('file-in');
+  const statOrig    = document.getElementById('stat-orig');
+  const statOut     = document.getElementById('stat-out');
+  const statSaved   = document.getElementById('stat-saved');
+
+  fileIn.addEventListener('change', async () => {
+    if (fileIn.files.length) {
+      const f = fileIn.files[0];
+      const ext = f.name.split('.').pop().toLowerCase();
+      if (['json', 'css', 'html', 'js'].includes(ext)) {
+        langSelect.value = ext;
+      }
+      codeInput.value = await f.text();
+      minifyCode();
+    }
+  });
+
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    if (bytes < 1024) return bytes + ' B';
+    return (bytes / 1024).toFixed(2) + ' KB';
+  }
+
+  function updateStats() {
+    const origBytes = new Blob([codeInput.value]).size;
+    const outBytes = new Blob([codeOutput.value]).size;
+    statOrig.textContent = formatBytes(origBytes);
+    statOut.textContent = formatBytes(outBytes);
+
+    if (origBytes > 0 && outBytes > 0) {
+      const diff = origBytes - outBytes;
+      const pct = ((diff / origBytes) * 100).toFixed(1);
+      if (diff > 0) {
+        statSaved.textContent = `-${pct}% (${formatBytes(diff)})`;
+        statSaved.style.color = '#4ade80';
+      } else {
+        statSaved.textContent = `+${Math.abs(pct)}% (+${formatBytes(-diff)})`;
+        statSaved.style.color = 'var(--gold)';
+      }
+    } else {
+      statSaved.textContent = '0% (0 B)';
+    }
+  }
+
+  // MINIFIERS
+  function minifyJSON(str) {
+    return JSON.stringify(JSON.parse(str));
+  }
+
+  function minifyCSS(str) {
+    return str
+      .replace(/\/\*[\s\S]*?\*\//g, '') // comentarios
+      .replace(/\s+/g, ' ')             // espacios múltiples
+      .replace(/\s*([\{\}\:\;\,])\s*/g, '$1')
+      .replace(/\;(?=\})/g, '')         // último punto y coma
+      .trim();
+  }
+
+  function minifyHTML(str) {
+    return str
+      .replace(/<!--[\s\S]*?-->/g, '')  // comentarios
+      .replace(/>\s+</g, '><')          // espacios entre tags
+      .replace(/\s{2,}/g, ' ')          // espacios múltiples
+      .trim();
+  }
+
+  function minifyJS(str) {
+    return str
+      .replace(/\/\*[\s\S]*?\*\//g, '')       // comentarios bloque
+      .replace(/(^|[^:])\/\/[^\n]*/g, '$1')   // comentarios línea
+      .replace(/\s*([=+\-*/%&|<>!?:;{},()])\s*/g, '$1')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // BEAUTIFIERS
+  function beautifyJSON(str) {
+    return JSON.stringify(JSON.parse(str), null, 2);
+  }
+
+  function beautifyCSS(str) {
+    return str
+      .replace(/\s*\{\s*/g, ' {\n  ')
+      .replace(/\s*;\s*/g, ';\n  ')
+      .replace(/\s*\}\s*/g, '\n}\n\n')
+      .replace(/\s*\n\s*\n\s*/g, '\n\n')
+      .trim();
+  }
+
+  function beautifyHTML(str) {
+    let formatted = '';
+    let pad = 0;
+    const tokens = str.replace(/>\s*</g, '><').replace(/</g, '~::~<').split('~::~');
+    tokens.forEach(tok => {
+      if (!tok) return;
+      if (tok.match(/^\/\w/)) {
+        pad = Math.max(0, pad - 1);
+      }
+      formatted += '  '.repeat(pad) + tok + '\n';
+      if (tok.match(/^<\w[^>]*[^\/]>$/) && !tok.startsWith('<!') && !tok.startsWith('<?')) {
+        pad++;
+      }
+    });
+    return formatted.trim();
+  }
+
+  function minifyCode() {
+    const raw = codeInput.value;
+    if (!raw.trim()) {
+      codeOutput.value = '';
+      updateStats();
+      return;
+    }
+
+    try {
+      const lang = langSelect.value;
+      if (lang === 'json') codeOutput.value = minifyJSON(raw);
+      else if (lang === 'css') codeOutput.value = minifyCSS(raw);
+      else if (lang === 'html') codeOutput.value = minifyHTML(raw);
+      else if (lang === 'js') codeOutput.value = minifyJS(raw);
+      updateStats();
+    } catch (err) {
+      codeOutput.value = `Error de sintaxis: ${err.message}`;
+    }
+  }
+
+  function beautifyCode() {
+    const raw = codeInput.value;
+    if (!raw.trim()) {
+      codeOutput.value = '';
+      updateStats();
+      return;
+    }
+
+    try {
+      const lang = langSelect.value;
+      if (lang === 'json') codeOutput.value = beautifyJSON(raw);
+      else if (lang === 'css') codeOutput.value = beautifyCSS(raw);
+      else if (lang === 'html') codeOutput.value = beautifyHTML(raw);
+      else if (lang === 'js') codeOutput.value = beautifyJSON(raw); // fallback if valid JSON
+      updateStats();
+    } catch (err) {
+      if (langSelect.value === 'js') {
+        // Formateador simple si no es json
+        codeOutput.value = raw.replace(/([;{}])/g, '$1\n').replace(/\n\s*\n/g, '\n');
+      } else {
+        codeOutput.value = `Error: ${err.message}`;
+      }
+    }
+    updateStats();
+  }
+
+  btnMinify.addEventListener('click', minifyCode);
+  btnBeautify.addEventListener('click', beautifyCode);
+
+  btnCopyOut.addEventListener('click', async () => {
+    if (!codeOutput.value) return;
+    await navigator.clipboard.writeText(codeOutput.value);
+    btnCopyOut.textContent = '¡Copiado!';
+    setTimeout(() => { btnCopyOut.textContent = '📋 Copiar'; }, 1500);
+  });
+
+  btnDownload.addEventListener('click', () => {
+    if (!codeOutput.value) return;
+    const lang = langSelect.value;
+    const blob = new Blob([codeOutput.value], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `codigo-procesado.min.${lang}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // Example default JSON
+  codeInput.value = `{\n  "nombre": "MiniApps Suite",\n  "seguridad": true,\n  "offline": true,\n  "herramientas": [\n    "documentos",\n    "codigo-barras",\n    "comparador",\n    "pizarra",\n    "enlaces-utiles",\n    "minificador"\n  ]\n}`;
+  minifyCode();
+</script>
+</body>
+</html>

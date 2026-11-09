@@ -31,6 +31,12 @@ ALLOWED_STATIC_FILES = {
     "/grabador.html": "grabador.html",
     "/seguridad.html": "seguridad.html",
     "/formatos.html": "formatos.html",
+    "/documentos.html": "documentos.html",
+    "/codigo-barras.html": "codigo-barras.html",
+    "/comparador.html": "comparador.html",
+    "/pizarra.html": "pizarra.html",
+    "/enlaces-utiles.html": "enlaces-utiles.html",
+    "/minificador.html": "minificador.html",
 }
 
 DEFAULT_COBALT_APIS = [

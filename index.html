@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"/>
   <meta name="referrer" content="no-referrer"/>
-  <title>Mis MiniApps ✨ · Suite Completa de Utilidades y Convertidores</title>
+  <title>Mis MiniApps ✨ · Suite Completa de Herramientas y Convertidores</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -20,11 +20,12 @@
       min-height: 100vh;
       background: radial-gradient(ellipse at 50% 30%, #7a1040 0%, var(--deep) 70%);
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      font-family: 'Segoe UI', sans-serif;
+      justify-content: flex-start;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       color: #fff;
-      padding: 2.5rem 1rem;
+      padding: 2.2rem 1rem;
     }
 
     .card {
@@ -33,28 +34,50 @@
       border-radius: 26px;
       padding: 2.5rem 2rem;
       width: 100%;
-      max-width: 920px;
+      max-width: 1050px;
       text-align: center;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 45px rgba(0,0,0,0.55);
     }
 
     .card h1 {
-      font-size: 2.2rem;
+      font-size: 2.3rem;
       color: var(--pink);
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
     }
 
     .card p.sub {
       font-size: 0.92rem;
       color: var(--gold);
-      letter-spacing: 0.08em;
-      margin-bottom: 2rem;
+      letter-spacing: 0.06em;
+      margin-bottom: 1.8rem;
+    }
+
+    /* Buscador en tiempo real */
+    .search-box-wrap {
+      max-width: 500px;
+      margin: 0 auto 1.8rem auto;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      padding: 0.8rem 1.2rem;
+      border-radius: 50px;
+      border: 1px solid rgba(232,80,122,0.45);
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 16px rgba(232,80,122,0.5);
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 1.1rem;
     }
 
@@ -62,13 +85,13 @@
       display: flex;
       align-items: flex-start;
       gap: 1rem;
-      padding: 1.2rem;
+      padding: 1.15rem;
       border-radius: 18px;
       text-decoration: none;
       color: #fff;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(232,80,122,0.35);
-      transition: transform 0.18s ease, background 0.2s ease, border-color 0.2s ease;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(232,80,122,0.32);
+      transition: transform 0.18s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       text-align: left;
     }
 
@@ -76,6 +99,7 @@
       transform: translateY(-3px);
       background: rgba(232,80,122,0.22);
       border-color: var(--rose);
+      box-shadow: 0 6px 20px rgba(232,80,122,0.3);
     }
 
     .icon {
@@ -91,14 +115,14 @@
     }
 
     .info h2 {
-      font-size: 1.05rem;
+      font-size: 1.02rem;
       color: var(--pink);
-      margin-bottom: 0.22rem;
+      margin-bottom: 0.25rem;
     }
 
     .info p {
       font-size: 0.79rem;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.72);
       line-height: 1.35;
     }
 
@@ -108,66 +132,127 @@
       font-size: 0.68rem;
       padding: 0.15rem 0.55rem;
       border-radius: 50px;
-      background: rgba(212,162,76,0.2);
+      background: rgba(212,162,76,0.18);
       color: var(--gold);
-      border: 1px solid rgba(212,162,76,0.4);
+      border: 1px solid rgba(212,162,76,0.35);
+    }
+
+    .badge.new {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border-color: rgba(34, 197, 94, 0.4);
     }
 
     .footer-note {
-      margin-top: 2rem;
+      margin-top: 2.2rem;
       font-size: 0.78rem;
       color: rgba(255,255,255,0.55);
+      line-height: 1.5;
     }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Mis MiniApps ✨</h1>
-    <p class="sub">Suite de 10 herramientas y convertidores 100% gratis, privados y online</p>
+    <p class="sub">Suite de 16 herramientas y convertidores 100% gratis, privados y sin límites</p>
 
-    <div class="grid">
-      <!-- 1 -->
-      <a href="qr.html" class="app-btn">
-        <div class="icon">💕</div>
+    <div class="search-box-wrap">
+      <input type="text" id="search-input" class="search-input" placeholder="🔍 Buscar herramienta o formato (ej. excel, video, qr, pass)..." autocomplete="off"/>
+    </div>
+
+    <div class="grid" id="apps-grid">
+      <!-- 1: Documentos -->
+      <a href="documentos.html" class="app-btn" data-tags="excel word docx pdf csv xlsx sheets convertidor documentos">
+        <div class="icon">📑</div>
         <div class="info">
-          <h2>Generador QR</h2>
-          <p>Convierte cualquier enlace en un código QR descargable en PNG al instante.</p>
-          <span class="badge">✓ Sin Servidor · 100% Gratis</span>
+          <h2>Docs, Excel & PDF</h2>
+          <p>Convierte entre Excel (.xlsx), Word (.docx), PDF, CSV, Markdown y Texto plano.</p>
+          <span class="badge new">✨ Nuevo · Universal</span>
         </div>
       </a>
 
-      <!-- 2 -->
-      <a href="escaner-qr.html" class="app-btn">
+      <!-- 2: Pantalla PiP -->
+      <a href="grabador.html" class="app-btn" data-tags="video grabador pantalla camara pip webcam audio microfono">
+        <div class="icon">🎥</div>
+        <div class="info">
+          <h2>Grabador de Pantalla + PiP</h2>
+          <p>Graba tu pantalla con tu cámara web en miniatura flotante (PiP), micrófono y audio.</p>
+          <span class="badge new">✨ Modo PiP Dual</span>
+        </div>
+      </a>
+
+      <!-- 3: Ciberseguridad & Auditor -->
+      <a href="seguridad.html" class="app-btn" data-tags="contraseña seguridad auditor crack hash sha256 uuid claves">
+        <div class="icon">🛡️</div>
+        <div class="info">
+          <h2>Ciberseguridad & Claves</h2>
+          <p>Auditor de seguridad de contraseñas con tiempo de crackeo, generador y SHA-256/512.</p>
+          <span class="badge new">✨ Auditor Integrado</span>
+        </div>
+      </a>
+
+      <!-- 4: Códigos de Barras -->
+      <a href="codigo-barras.html" class="app-btn" data-tags="codigo barras barcode ean upc code128 productos etiquetas">
+        <div class="icon">🏷️</div>
+        <div class="info">
+          <h2>Códigos de Barras</h2>
+          <p>Genera códigos Code 128, EAN-13, UPC y Code 39. Descarga en SVG vectorial o PNG HD.</p>
+          <span class="badge new">✨ Nuevo · SVG / PNG</span>
+        </div>
+      </a>
+
+      <!-- 5: Comparador Diff -->
+      <a href="comparador.html" class="app-btn" data-tags="comparador diff codigo texto diferencias version patch">
         <div class="icon">🔍</div>
         <div class="info">
-          <h2>Escanear QR</h2>
-          <p>Lee códigos QR desde imágenes subidas o directamente con la cámara web.</p>
-          <span class="badge">✓ Lector QR · Cámara / Foto</span>
+          <h2>Comparador Diff</h2>
+          <p>Compara dos textos o archivos de código por líneas, palabras o caracteres en tiempo real.</p>
+          <span class="badge new">✨ Nuevo · Side-by-side</span>
         </div>
       </a>
 
-      <!-- 3 -->
-      <a href="yt-mp3.html" class="app-btn">
-        <div class="icon">🎵</div>
+      <!-- 6: Pizarra Digital -->
+      <a href="pizarra.html" class="app-btn" data-tags="pizarra dibujo whiteboard canvas notas esquemas diagramas">
+        <div class="icon">🎨</div>
         <div class="info">
-          <h2>YouTube → MP3</h2>
-          <p>Descarga el audio de videos y Shorts en MP3 a 320 kbps sin anuncios.</p>
-          <span class="badge">✓ Directo en Web · 320 kbps</span>
+          <h2>Pizarra & Diagramas</h2>
+          <p>Lienzo interactivo para bocetos, figuras geométricas, flechas y notas descargables en PNG.</p>
+          <span class="badge new">✨ Nuevo · Canvas 60fps</span>
         </div>
       </a>
 
-      <!-- 4 -->
-      <a href="imagenes.html" class="app-btn">
+      <!-- 7: WhatsApp & vCard -->
+      <a href="enlaces-utiles.html" class="app-btn" data-tags="whatsapp vcard contacto qr telefono link enlace mensaje">
+        <div class="icon">📱</div>
+        <div class="info">
+          <h2>WhatsApp & Contactos vCard</h2>
+          <p>Crea enlaces directos de WhatsApp con mensaje o tarjetas de contacto .vcf en QR.</p>
+          <span class="badge new">✨ Nuevo · vCard QR</span>
+        </div>
+      </a>
+
+      <!-- 8: Minificador -->
+      <a href="minificador.html" class="app-btn" data-tags="minificador compresor beautify html css js json formateador">
+        <div class="icon">🗜️</div>
+        <div class="info">
+          <h2>Minificador de Código</h2>
+          <p>Comprime o formatea código HTML, CSS, JavaScript y JSON midiendo el ahorro en bytes.</p>
+          <span class="badge new">✨ Nuevo · HTML/CSS/JS</span>
+        </div>
+      </a>
+
+      <!-- 9: Imágenes SVG / WebP -->
+      <a href="imagenes.html" class="app-btn" data-tags="imagen svg webp png jpg avif ico bmp vectorizador foto">
         <div class="icon">🖼️</div>
         <div class="info">
           <h2>Imágenes / SVG / WebP</h2>
           <p>Convierte entre SVG (vector), WebP, PNG, JPG, AVIF, ICO y BMP con compresión.</p>
-          <span class="badge">✓ SVG Vector · WebP · ICO · BMP</span>
+          <span class="badge">✓ Vectorizador SVG</span>
         </div>
       </a>
 
-      <!-- 5 -->
-      <a href="pdf-img.html" class="app-btn">
+      <!-- 10: PDF ↔ Imágenes -->
+      <a href="pdf-img.html" class="app-btn" data-tags="pdf imagenes jpg png fotos convertir extraer hojas">
         <div class="icon">📄</div>
         <div class="info">
           <h2>Imágenes ↔ PDF</h2>
@@ -176,58 +261,86 @@
         </div>
       </a>
 
-      <!-- 6 -->
-      <a href="pdf-herramientas.html" class="app-btn">
+      <!-- 11: Caja de Herramientas PDF -->
+      <a href="pdf-herramientas.html" class="app-btn" data-tags="pdf unir dividir rotar hojas recortar paginas">
         <div class="icon">📚</div>
         <div class="info">
-          <h2>Caja de Herramientas PDF</h2>
+          <h2>Herramientas PDF</h2>
           <p>Une múltiples PDFs en uno solo, extrae rangos de páginas o rota documentos.</p>
           <span class="badge">✓ Unir · Dividir · Rotar</span>
         </div>
       </a>
 
-      <!-- 7 -->
-      <a href="audio-video.html" class="app-btn">
+      <!-- 12: Audio & Video a MP3 -->
+      <a href="audio-video.html" class="app-btn" data-tags="audio video mp3 wav recortar cortar convertir mp4">
         <div class="icon">🎧</div>
         <div class="info">
           <h2>Video / Audio → MP3</h2>
           <p>Extrae audio de videos MP4/MOV/WebM o convierte audios con recorte a MP3/WAV.</p>
-          <span class="badge">✓ Extraer & Recortar Audio</span>
+          <span class="badge">✓ Recorte & Extracción</span>
         </div>
       </a>
 
-      <!-- 8 -->
-      <a href="grabador.html" class="app-btn">
-        <div class="icon">🎥</div>
+      <!-- 13: YouTube a MP3 -->
+      <a href="yt-mp3.html" class="app-btn" data-tags="youtube mp3 musica audio shorts descargar">
+        <div class="icon">🎵</div>
         <div class="info">
-          <h2>Grabador de Pantalla & Voz</h2>
-          <p>Graba la pantalla de tu equipo, tu cámara web o notas de voz con audio.</p>
-          <span class="badge">✓ Pantalla · Cámara · Micrófono</span>
+          <h2>YouTube → MP3</h2>
+          <p>Descarga el audio de videos y Shorts en MP3 a 320 kbps sin anuncios.</p>
+          <span class="badge">✓ 320 kbps Directo</span>
         </div>
       </a>
 
-      <!-- 9 -->
-      <a href="seguridad.html" class="app-btn">
-        <div class="icon">🛡️</div>
+      <!-- 14: Generador QR -->
+      <a href="qr.html" class="app-btn" data-tags="qr generador enlace link codigo png">
+        <div class="icon">💕</div>
         <div class="info">
-          <h2>Ciberseguridad & Hashes</h2>
-          <p>Genera contraseñas seguras, calcula Checksums (SHA-256) y crea UUIDs.</p>
-          <span class="badge">✓ Criptografía Nativa CSPRNG</span>
+          <h2>Generador QR</h2>
+          <p>Convierte cualquier enlace en un código QR descargable en PNG al instante.</p>
+          <span class="badge">✓ 100% Offline</span>
         </div>
       </a>
 
-      <!-- 10 -->
-      <a href="formatos.html" class="app-btn">
+      <!-- 15: Escanear QR -->
+      <a href="escaner-qr.html" class="app-btn" data-tags="qr escanear camara lector foto decoder">
+        <div class="icon">🔍</div>
+        <div class="info">
+          <h2>Escanear QR</h2>
+          <p>Lee códigos QR desde imágenes subidas o directamente con la cámara web.</p>
+          <span class="badge">✓ Cámara / Archivo</span>
+        </div>
+      </a>
+
+      <!-- 16: Formatos y Datos -->
+      <a href="formatos.html" class="app-btn" data-tags="csv json tsv base64 html tabla datos convertidor">
         <div class="icon">🔄</div>
         <div class="info">
-          <h2>Convertidor CSV / JSON / Datos</h2>
+          <h2>Convertidor CSV / JSON</h2>
           <p>Transforma hojas y texto entre CSV (Excel), JSON, TSV, HTML y Base64.</p>
-          <span class="badge">✓ CSV · JSON · Base64 · TSV</span>
+          <span class="badge">✓ CSV · JSON · Base64</span>
         </div>
       </a>
     </div>
 
-    <p class="footer-note">🔒 Ciberseguridad y Privacidad: Sin registros, sin anuncios invasivos y con procesamiento local en tu navegador.</p>
+    <p class="footer-note">🔒 Ciberseguridad y Privacidad Garantizada: Todo el procesamiento corre en el navegador del usuario (Client-Side). Sin APIs de pago, sin cookies de rastreo y sin riesgo de filtración de datos.</p>
   </div>
+
+  <script>
+    const searchInput = document.getElementById('search-input');
+    const appBtns = document.querySelectorAll('.app-btn');
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      appBtns.forEach(btn => {
+        const text = btn.innerText.toLowerCase();
+        const tags = btn.dataset.tags || '';
+        if (!q || text.includes(q) || tags.includes(q)) {
+          btn.style.display = 'flex';
+        } else {
+          btn.style.display = 'none';
+        }
+      });
+    });
+  </script>
 </body>
 </html>

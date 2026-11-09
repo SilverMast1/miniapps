@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>Pizarra Digital & Dibujo 🎨 · MiniApps</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose: #e8507a;
+      --pink: #f9c6d0;
+      --deep: #3a0a1e;
+      --gold: #d4a24c;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 30%, #7a1040 0%, var(--deep) 70%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #fff;
+      padding: 1.5rem 1rem;
+      user-select: none;
+    }
+
+    .nav-bar {
+      margin-bottom: 1.2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      max-width: 900px;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--pink);
+      font-size: 0.8rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 50px;
+      border: 1px solid rgba(232,80,122,0.35);
+      background: rgba(255,255,255,0.06);
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: var(--rose);
+      color: #fff;
+      border-color: var(--rose);
+    }
+
+    .canvas-container {
+      position: relative;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 20px;
+      padding: 1rem;
+      width: 100%;
+      max-width: 1050px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    /* Toolbar superior */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.3);
+      padding: 0.6rem 0.9rem;
+      border-radius: 14px;
+    }
+
+    .tool-group {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .tool-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(232,80,122,0.3);
+      color: #fff;
+      padding: 0.45rem 0.75rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .tool-btn:hover { background: rgba(232,80,122,0.3); }
+    .tool-btn.active {
+      background: var(--rose);
+      border-color: var(--pink);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.4);
+      transition: transform 0.15s;
+    }
+    .color-swatch:hover, .color-swatch.active {
+      transform: scale(1.2);
+      border-color: #fff;
+    }
+
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      background: none;
+    }
+
+    .size-slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--pink);
+    }
+    input[type="range"] {
+      width: 90px;
+      accent-color: var(--rose);
+      cursor: pointer;
+    }
+
+    /* Tablero de dibujo */
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+      background-color: #1a1a24;
+      background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px);
+      background-size: 20px 20px;
+      cursor: crosshair;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .btn-action-pill {
+      background: linear-gradient(135deg, var(--rose) 0%, #bd215b 100%);
+      color: #fff;
+      border: none;
+      padding: 0.45rem 1rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-action-pill:hover { opacity: 0.9; transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <a class="nav-link" href="index.html">🏠 Inicio</a>
+  <a class="nav-link" href="documentos.html">📑 Docs & Excel</a>
+  <a class="nav-link" href="imagenes.html">🖼️ Imágenes</a>
+  <a class="nav-link active" href="pizarra.html">🎨 Pizarra</a>
+  <a class="nav-link" href="grabador.html">🎥 Grabador PiP</a>
+  <a class="nav-link" href="codigo-barras.html">🏷️ Códigos de Barras</a>
+</div>
+
+<div class="canvas-container">
+  <div class="toolbar">
+    <!-- Herramientas -->
+    <div class="tool-group">
+      <button class="tool-btn active" id="tool-pen" data-tool="pen">✏️ Lápiz</button>
+      <button class="tool-btn" id="tool-line" data-tool="line">📏 Línea</button>
+      <button class="tool-btn" id="tool-rect" data-tool="rect">🔲 Rectángulo</button>
+      <button class="tool-btn" id="tool-circle" data-tool="circle">⭕ Círculo</button>
+      <button class="tool-btn" id="tool-arrow" data-tool="arrow">➡️ Flecha</button>
+      <button class="tool-btn" id="tool-eraser" data-tool="eraser">🧽 Borrador</button>
+    </div>
+
+    <!-- Colores -->
+    <div class="tool-group">
+      <div class="color-swatch active" style="background:#e8507a" data-color="#e8507a"></div>
+      <div class="color-swatch" style="background:#ffffff" data-color="#ffffff"></div>
+      <div class="color-swatch" style="background:#3b82f6" data-color="#3b82f6"></div>
+      <div class="color-swatch" style="background:#22c55e" data-color="#22c55e"></div>
+      <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b"></div>
+      <input type="color" id="custom-color" value="#e8507a" title="Color personalizado"/>
+    </div>
+
+    <!-- Grosor -->
+    <div class="size-slider-wrap">
+      <span>Trazo</span>
+      <input type="range" id="brush-size" min="1" max="30" value="4"/>
+      <span id="brush-val">4px</span>
+    </div>
+
+    <!-- Acciones -->
+    <div class="tool-group">
+      <button class="tool-btn" id="btn-undo" title="Deshacer (Ctrl+Z)">↩️</button>
+      <button class="tool-btn" id="btn-redo" title="Rehacer (Ctrl+Y)">↪️</button>
+      <button class="tool-btn" id="btn-clear" title="Borrar todo">🗑️</button>
+      <button class="btn-action-pill" id="btn-download">💾 Descargar PNG</button>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="canvas-wrap">
+    <canvas id="paint-canvas"></canvas>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('paint-canvas');
+  const ctx = canvas.getContext('2d');
+  const wrap = document.getElementById('canvas-wrap');
+  const brushSlider = document.getElementById('brush-size');
+  const brushVal = document.getElementById('brush-val');
+  const customColor = document.getElementById('custom-color');
+  const btnUndo = document.getElementById('btn-undo');
+  const btnRedo = document.getElementById('btn-redo');
+  const btnClear = document.getElementById('btn-clear');
+  const btnDownload = document.getElementById('btn-download');
+
+  let currentTool = 'pen';
+  let currentColor = '#e8507a';
+  let currentSize = 4;
+  let isDrawing = false;
+  let startX = 0;
+  let startY = 0;
+  let snapshot = null;
+
+  // History stack for Undo / Redo
+  const undoStack = [];
+  const redoStack = [];
+  const MAX_HISTORY = 25;
+
+  function resizeCanvas() {
+    const rect = wrap.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    // Guardar contenido actual si existe
+    let tempImg = null;
+    if (canvas.width > 0 && canvas.height > 0) {
+      tempImg = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    }
+
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    if (tempImg) {
+      ctx.putImageData(tempImg, 0, 0);
+    } else {
+      saveState();
+    }
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  setTimeout(resizeCanvas, 50);
+
+  function saveState() {
+    if (undoStack.length >= MAX_HISTORY) undoStack.shift();
+    undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    redoStack.length = 0;
+  }
+
+  // Tool buttons
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTool = btn.dataset.tool;
+    });
+  });
+
+  // Color Swatches
+  document.querySelectorAll('.color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+      currentColor = sw.dataset.color;
+      customColor.value = currentColor;
+    });
+  });
+
+  customColor.addEventListener('input', () => {
+    currentColor = customColor.value;
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+  });
+
+  brushSlider.addEventListener('input', () => {
+    currentSize = parseInt(brushSlider.value, 10);
+    brushVal.textContent = `${currentSize}px`;
+  });
+
+  // Mouse & Touch Coordinates
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    isDrawing = true;
+    const pos = getPos(e);
+    startX = pos.x;
+    startY = pos.y;
+    snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = currentSize;
+    ctx.strokeStyle = currentTool === 'eraser' ? '#1a1a24' : currentColor;
+  }
+
+  function drawing(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const pos = getPos(e);
+
+    if (currentTool === 'pen' || currentTool === 'eraser') {
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    } else {
+      ctx.putImageData(snapshot, 0, 0);
+      ctx.beginPath();
+      ctx.lineWidth = currentSize;
+      ctx.strokeStyle = currentColor;
+
+      if (currentTool === 'line') {
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      } else if (currentTool === 'rect') {
+        ctx.strokeRect(startX, startY, pos.x - startX, pos.y - startY);
+      } else if (currentTool === 'circle') {
+        const radius = Math.sqrt(Math.pow(pos.x - startX, 2) + Math.pow(pos.y - startY, 2));
+        ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+        ctx.stroke();
+      } else if (currentTool === 'arrow') {
+        drawArrow(startX, startY, pos.x, pos.y);
+      }
+    }
+  }
+
+  function stopDraw(e) {
+    if (isDrawing) {
+      isDrawing = false;
+      saveState();
+    }
+  }
+
+  function drawArrow(fromx, fromy, tox, toy) {
+    const headlen = Math.max(10, currentSize * 2.5);
+    const angle = Math.atan2(toy - fromy, tox - fromx);
+    ctx.moveTo(fromx, fromy);
+    ctx.lineTo(tox, toy);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+    ctx.stroke();
+  }
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', drawing);
+  window.addEventListener('mouseup', stopDraw);
+
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove', drawing, { passive: false });
+  window.addEventListener('touchend', stopDraw);
+
+  // Undo / Redo
+  btnUndo.addEventListener('click', () => {
+    if (undoStack.length > 1) {
+      redoStack.push(undoStack.pop());
+      const state = undoStack[undoStack.length - 1];
+      ctx.putImageData(state, 0, 0);
+    }
+  });
+
+  btnRedo.addEventListener('click', () => {
+    if (redoStack.length > 0) {
+      const state = redoStack.pop();
+      undoStack.push(state);
+      ctx.putImageData(state, 0, 0);
+    }
+  });
+
+  // Clear
+  btnClear.addEventListener('click', () => {
+    if (confirm('¿Limpiar todo el lienzo?')) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      saveState();
+    }
+  });
+
+  // Download
+  btnDownload.addEventListener('click', () => {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tCtx = tempCanvas.getContext('2d');
+    
+    // Fondo oscuro sólido
+    tCtx.fillStyle = '#1a1a24';
+    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tCtx.drawImage(canvas, 0, 0);
+
+    const a = document.createElement('a');
+    a.href = tempCanvas.toDataURL('image/png');
+    a.download = `pizarra-dibujo-${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+</script>
+</body>
+</html>

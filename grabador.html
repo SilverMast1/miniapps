@@ -260,9 +260,10 @@
   <p class="sub">Graba tu pantalla, cámara web o micrófono sin instalar ningún programa</p>
 
   <div class="source-selector">
-    <button class="source-btn active" data-type="screen">🖥️ Pantalla Completa / Ventana</button>
-    <button class="source-btn" data-type="camera">📸 Cámara Web</button>
-    <button class="source-btn" data-type="mic">🎙️ Solo Micrófono (Voz)</button>
+    <button class="source-btn active" data-type="screen">🖥️ Pantalla</button>
+    <button class="source-btn" data-type="screen-cam">🎥 Pantalla + Cámara (PiP)</button>
+    <button class="source-btn" data-type="camera">📸 Solo Cámara</button>
+    <button class="source-btn" data-type="mic">🎙️ Solo Voz (Micrófono)</button>
   </div>
 
   <div class="options-row">
@@ -273,6 +274,13 @@
     <label id="sys-audio-option">
       <input type="checkbox" id="include-sys-audio" checked/>
       Audio del sistema / pestaña
+    </label>
+    <label id="pip-shape-option" style="display:none">
+      Forma cámara:
+      <select id="pip-shape" style="background:#480d26;color:#fff;border:1px solid rgba(232,80,122,0.4);border-radius:8px;padding:2px 8px;font-size:0.8rem">
+        <option value="round">Redondeada</option>
+        <option value="circle">Circular</option>
+      </select>
     </label>
   </div>
 
@@ -313,12 +321,17 @@
   let timerInterval  = null;
   let secondsElapsed = 0;
   let outputBlobUrl  = null;
+  let pipAnimId      = null;
+  let pipScreenStream = null;
+  let pipCamStream   = null;
 
   const sourceBtns      = document.querySelectorAll('.source-btn');
   const includeMic      = document.getElementById('include-mic');
   const includeSysAudio = document.getElementById('include-sys-audio');
   const micOption       = document.getElementById('mic-option');
   const sysAudioOption  = document.getElementById('sys-audio-option');
+  const pipShapeOption  = document.getElementById('pip-shape-option');
+  const pipShape        = document.getElementById('pip-shape');
   const previewVideo    = document.getElementById('preview-video');
   const placeholderBox  = document.getElementById('placeholder-box');
   const recBadge        = document.getElementById('rec-badge');
@@ -345,12 +358,19 @@
     if (currentType === 'mic') {
       micOption.style.display = 'none';
       sysAudioOption.style.display = 'none';
+      pipShapeOption.style.display = 'none';
     } else if (currentType === 'camera') {
       micOption.style.display = 'flex';
       sysAudioOption.style.display = 'none';
+      pipShapeOption.style.display = 'none';
+    } else if (currentType === 'screen-cam') {
+      micOption.style.display = 'flex';
+      sysAudioOption.style.display = 'flex';
+      pipShapeOption.style.display = 'flex';
     } else {
       micOption.style.display = 'flex';
       sysAudioOption.style.display = 'flex';
+      pipShapeOption.style.display = 'none';
     }
   }
 
@@ -369,7 +389,100 @@
       let videoStream = null;
       let audioStream = null;
 
-      if (currentType === 'screen') {
+      if (currentType === 'screen-cam') {
+        pipScreenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: { frameRate: { ideal: 30 } },
+          audio: includeSysAudio.checked
+        });
+        pipCamStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: includeMic.checked
+        });
+
+        const sVid = document.createElement('video');
+        sVid.autoplay = true;
+        sVid.muted = true;
+        sVid.playsInline = true;
+        sVid.srcObject = pipScreenStream;
+        await sVid.play();
+
+        const cVid = document.createElement('video');
+        cVid.autoplay = true;
+        cVid.muted = true;
+        cVid.playsInline = true;
+        cVid.srcObject = pipCamStream;
+        await cVid.play();
+
+        const pipCanvas = document.createElement('canvas');
+        const pipCtx = pipCanvas.getContext('2d');
+        const isCircle = (pipShape.value === 'circle');
+
+        function renderPiPFrame() {
+          if (sVid.videoWidth > 0) {
+            pipCanvas.width = sVid.videoWidth;
+            pipCanvas.height = sVid.videoHeight;
+            pipCtx.drawImage(sVid, 0, 0, pipCanvas.width, pipCanvas.height);
+
+            const camW = Math.max(160, Math.round(pipCanvas.width * 0.22));
+            const camH = isCircle ? camW : Math.round(camW * (cVid.videoHeight / (cVid.videoWidth || 1)));
+            const pad = Math.round(pipCanvas.width * 0.02);
+            const x = pipCanvas.width - camW - pad;
+            const y = pipCanvas.height - camH - pad;
+
+            pipCtx.save();
+            pipCtx.shadowColor = 'rgba(0,0,0,0.6)';
+            pipCtx.shadowBlur = 18;
+            pipCtx.beginPath();
+            if (isCircle) {
+              const radius = camW / 2;
+              ctxArcCircle(pipCtx, x + radius, y + radius, radius);
+            } else {
+              ctxRoundRect(pipCtx, x, y, camW, camH, 20);
+            }
+            pipCtx.clip();
+            pipCtx.drawImage(cVid, x, y, camW, camH);
+            pipCtx.restore();
+
+            pipCtx.save();
+            pipCtx.strokeStyle = '#e8507a';
+            pipCtx.lineWidth = 4;
+            pipCtx.beginPath();
+            if (isCircle) {
+              const radius = camW / 2;
+              ctxArcCircle(pipCtx, x + radius, y + radius, radius);
+            } else {
+              ctxRoundRect(pipCtx, x, y, camW, camH, 20);
+            }
+            pipCtx.stroke();
+            pipCtx.restore();
+          }
+          pipAnimId = requestAnimationFrame(renderPiPFrame);
+        }
+
+        function ctxArcCircle(c, cx, cy, r) {
+          c.arc(cx, cy, r, 0, Math.PI * 2);
+        }
+        function ctxRoundRect(c, rx, ry, rw, rh, rad) {
+          if (c.roundRect) c.roundRect(rx, ry, rw, rh, rad);
+          else c.rect(rx, ry, rw, rh);
+        }
+
+        renderPiPFrame();
+        videoStream = pipCanvas.captureStream(30);
+
+        const audTracks = [];
+        pipScreenStream.getAudioTracks().forEach(t => audTracks.push(t));
+        pipCamStream.getAudioTracks().forEach(t => audTracks.push(t));
+        if (audTracks.length) audioStream = new MediaStream(audTracks);
+
+        const screenTrack = pipScreenStream.getVideoTracks()[0];
+        if (screenTrack) {
+          screenTrack.addEventListener('ended', () => {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') stopRecording();
+          });
+        }
+
+      } else if (currentType === 'screen') {
         videoStream = await navigator.mediaDevices.getDisplayMedia({
           video: { frameRate: { ideal: 30 } },
           audio: includeSysAudio.checked
@@ -404,9 +517,8 @@
         placeholderBox.style.display = 'none';
       }
 
-      // Si el usuario cancela compartir pantalla con el botón flotante del navegador
       const videoTrack = stream.getVideoTracks()[0];
-      if (videoTrack) {
+      if (videoTrack && currentType === 'screen') {
         videoTrack.addEventListener('ended', () => {
           if (mediaRecorder && mediaRecorder.state !== 'inactive') stopRecording();
         });
@@ -422,7 +534,6 @@
 
       mediaRecorder.start(1000);
 
-      // UI en grabación
       startBtn.style.display = 'none';
       pauseBtn.style.display = 'inline-block';
       pauseBtn.textContent = '⏸️ Pausar';
@@ -436,6 +547,8 @@
 
     } catch (err) {
       alert('No se pudo iniciar la grabación: ' + err.message);
+      if (pipScreenStream) pipScreenStream.getTracks().forEach(t => t.stop());
+      if (pipCamStream) pipCamStream.getTracks().forEach(t => t.stop());
     }
   });
 
@@ -462,6 +575,18 @@
     }
     if (stream) {
       stream.getTracks().forEach(t => t.stop());
+    }
+    if (pipAnimId) {
+      cancelAnimationFrame(pipAnimId);
+      pipAnimId = null;
+    }
+    if (pipScreenStream) {
+      pipScreenStream.getTracks().forEach(t => t.stop());
+      pipScreenStream = null;
+    }
+    if (pipCamStream) {
+      pipCamStream.getTracks().forEach(t => t.stop());
+      pipCamStream = null;
     }
     clearInterval(timerInterval);
   }

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline';"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>Comparador de Textos y Código 🔍 · MiniApps</title>
+  <script src="https://cdn.jsdelivr.net/npm/diff@5.2.0/dist/diff.min.js"
+          integrity="sha384-lJJVaUgxmk/PVfQnAsGN1QuJZrE+n6bg2EMu33yVZOJ2av/3UzTHbmnPCI7ENJYa"
+          crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose: #e8507a;
+      --pink: #f9c6d0;
+      --deep: #3a0a1e;
+      --gold: #d4a24c;
+      --green: #22c55e;
+      --red: #ef4444;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 30%, #7a1040 0%, var(--deep) 70%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #fff;
+      padding: 1.8rem 1rem;
+    }
+
+    .nav-bar {
+      margin-bottom: 1.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      max-width: 900px;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--pink);
+      font-size: 0.8rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 50px;
+      border: 1px solid rgba(232,80,122,0.35);
+      background: rgba(255,255,255,0.06);
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: var(--rose);
+      color: #fff;
+      border-color: var(--rose);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(232,80,122,0.3);
+      border-radius: 24px;
+      padding: 2rem 1.6rem;
+      width: 100%;
+      max-width: 950px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+    }
+
+    .card h1 {
+      font-size: 1.8rem;
+      color: var(--pink);
+      margin-bottom: 0.35rem;
+    }
+
+    .card p.sub {
+      font-size: 0.85rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      margin-bottom: 1.3rem;
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.25);
+      padding: 0.8rem 1.2rem;
+      border-radius: 14px;
+      margin-bottom: 1.2rem;
+    }
+
+    .select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--pink);
+    }
+
+    select {
+      padding: 0.45rem 0.8rem;
+      border-radius: 10px;
+      border: 1px solid rgba(232,80,122,0.4);
+      background: #480d26;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .diff-inputs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+      text-align: left;
+    }
+    @media (max-width: 768px) {
+      .diff-inputs-grid { grid-template-columns: 1fr; }
+    }
+
+    .input-col label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--pink);
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .file-btn {
+      font-size: 0.72rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(232,80,122,0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      color: var(--pink);
+      cursor: pointer;
+    }
+    .file-btn:hover { background: rgba(232,80,122,0.25); }
+
+    textarea {
+      width: 100%;
+      height: 190px;
+      padding: 0.75rem;
+      border-radius: 12px;
+      border: 1px solid rgba(232,80,122,0.35);
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      resize: vertical;
+      outline: none;
+    }
+    textarea:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 10px rgba(232,80,122,0.4);
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      background: rgba(0,0,0,0.2);
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+    }
+    .stat-add { color: #4ade80; }
+    .stat-del { color: #f87171; }
+    .stat-sim { color: var(--gold); }
+
+    /* Output diff */
+    .diff-output-box {
+      background: #1e1e24;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 1rem;
+      text-align: left;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      max-height: 420px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .diff-line {
+      display: block;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .diff-line.added {
+      background: rgba(34, 197, 94, 0.22);
+      color: #86efac;
+    }
+    .diff-line.removed {
+      background: rgba(239, 68, 68, 0.22);
+      color: #fca5a5;
+    }
+    .diff-line.unchanged {
+      color: #d1d5db;
+    }
+
+    /* Inline char diff */
+    ins {
+      background: rgba(34, 197, 94, 0.4);
+      color: #86efac;
+      text-decoration: none;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    del {
+      background: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      text-decoration: none;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    .btn-copy-diff {
+      margin-top: 1rem;
+      padding: 0.6rem 1.4rem;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--rose) 0%, #bd215b 100%);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-copy-diff:hover { opacity: 0.9; }
+
+    .privacy-tag {
+      margin-top: 1.4rem;
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <a class="nav-link" href="index.html">🏠 Inicio</a>
+  <a class="nav-link" href="documentos.html">📑 Docs & Excel</a>
+  <a class="nav-link active" href="comparador.html">🔍 Comparador Diff</a>
+  <a class="nav-link" href="formatos.html">🔄 Formatos</a>
+  <a class="nav-link" href="seguridad.html">🛡️ Ciberseguridad</a>
+  <a class="nav-link" href="imagenes.html">🖼️ Imágenes</a>
+</div>
+
+<div class="card">
+  <h1>🔍 Comparador de Textos y Código</h1>
+  <p class="sub">Visualizador de diferencias (Diff) por líneas, palabras o caracteres en tiempo real</p>
+
+  <div class="controls-bar">
+    <div class="select-wrap">
+      <span>Modo de comparación:</span>
+      <select id="diff-mode">
+        <option value="lines" selected>Por Líneas (Recomendado para Código)</option>
+        <option value="words">Por Palabras (Para Textos y Artículos)</option>
+        <option value="chars">Carácter por Carácter</option>
+      </select>
+    </div>
+
+    <button class="file-btn" id="btn-sample">Cargar Ejemplo</button>
+  </div>
+
+  <div class="diff-inputs-grid">
+    <div class="input-col">
+      <label>
+        <span>📄 Original (Antes)</span>
+        <button class="file-btn" onclick="document.getElementById('file-left').click()">Subir archivo</button>
+        <input type="file" id="file-left" style="display:none"/>
+      </label>
+      <textarea id="text-left" placeholder="Pega el texto original aquí..."></textarea>
+    </div>
+
+    <div class="input-col">
+      <label>
+        <span>📝 Modificado (Después)</span>
+        <button class="file-btn" onclick="document.getElementById('file-right').click()">Subir archivo</button>
+        <input type="file" id="file-right" style="display:none"/>
+      </label>
+      <textarea id="text-right" placeholder="Pega el texto nuevo o modificado aquí..."></textarea>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <span class="stat-add" id="stat-added">+0 adiciones</span>
+    <span class="stat-del" id="stat-removed">-0 eliminaciones</span>
+    <span class="stat-sim" id="stat-similarity">Similitud: 100%</span>
+  </div>
+
+  <div class="diff-output-box" id="diff-output"></div>
+
+  <button class="btn-copy-diff" id="btn-copy">📋 Copiar Diff al Portapapeles</button>
+
+  <p class="privacy-tag">
+    🔒 <strong>100% Confidencial:</strong> Todo el procesamiento de algoritmos LCS y comparación de diffs ocurre localmente en tu memoria RAM.
+  </p>
+</div>
+
+<script>
+  const textLeft    = document.getElementById('text-left');
+  const textRight   = document.getElementById('text-right');
+  const diffMode    = document.getElementById('diff-mode');
+  const diffOutput  = document.getElementById('diff-output');
+  const statAdded   = document.getElementById('stat-added');
+  const statRemoved = document.getElementById('stat-removed');
+  const statSim     = document.getElementById('stat-similarity');
+  const btnSample   = document.getElementById('btn-sample');
+  const btnCopy     = document.getElementById('btn-copy');
+
+  const fileLeft    = document.getElementById('file-left');
+  const fileRight   = document.getElementById('file-right');
+
+  fileLeft.addEventListener('change', async () => {
+    if (fileLeft.files.length) {
+      textLeft.value = await fileLeft.files[0].text();
+      computeDiff();
+    }
+  });
+
+  fileRight.addEventListener('change', async () => {
+    if (fileRight.files.length) {
+      textRight.value = await fileRight.files[0].text();
+      computeDiff();
+    }
+  });
+
+  btnSample.addEventListener('click', () => {
+    textLeft.value = `function calcularTotal(items) {
+  let subtotal = 0;
+  for (let i = 0; i < items.length; i++) {
+    subtotal += items[i].precio;
+  }
+  return subtotal;
+}`;
+    textRight.value = `function calcularTotal(items, descuento = 0) {
+  // Versión optimizada con reduce
+  const subtotal = items.reduce((acc, it) => acc + it.precio, 0);
+  const total = subtotal * (1 - descuento);
+  return Number(total.toFixed(2));
+}`;
+    computeDiff();
+  });
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>'"]/g, tag => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[tag] || tag));
+  }
+
+  function computeDiff() {
+    const a = textLeft.value;
+    const b = textRight.value;
+    const mode = diffMode.value;
+
+    if (!a && !b) {
+      diffOutput.innerHTML = '<span style="color:rgba(255,255,255,0.4)">Introduce texto en ambos lados para ver las diferencias...</span>';
+      statAdded.textContent = '+0 adiciones';
+      statRemoved.textContent = '-0 eliminaciones';
+      statSim.textContent = 'Similitud: 100%';
+      return;
+    }
+
+    let diff;
+    if (mode === 'lines') {
+      diff = Diff.diffLines(a, b);
+    } else if (mode === 'words') {
+      diff = Diff.diffWords(a, b);
+    } else {
+      diff = Diff.diffChars(a, b);
+    }
+
+    let html = '';
+    let addedCount = 0;
+    let removedCount = 0;
+    let unchangedChars = 0;
+    let totalChars = Math.max(1, a.length + b.length);
+
+    diff.forEach(part => {
+      const esc = escapeHtml(part.value);
+      if (part.added) {
+        addedCount += (part.count || 1);
+        if (mode === 'lines') {
+          const lines = esc.split('\n');
+          lines.forEach((l, idx) => {
+            if (idx === lines.length - 1 && l === '') return;
+            html += `<span class="diff-line added">+ ${l}</span>\n`;
+          });
+        } else {
+          html += `<ins>${esc}</ins>`;
+        }
+      } else if (part.removed) {
+        removedCount += (part.count || 1);
+        if (mode === 'lines') {
+          const lines = esc.split('\n');
+          lines.forEach((l, idx) => {
+            if (idx === lines.length - 1 && l === '') return;
+            html += `<span class="diff-line removed">- ${l}</span>\n`;
+          });
+        } else {
+          html += `<del>${esc}</del>`;
+        }
+      } else {
+        unchangedChars += part.value.length * 2;
+        if (mode === 'lines') {
+          const lines = esc.split('\n');
+          lines.forEach((l, idx) => {
+            if (idx === lines.length - 1 && l === '') return;
+            html += `<span class="diff-line unchanged">  ${l}</span>\n`;
+          });
+        } else {
+          html += `<span>${esc}</span>`;
+        }
+      }
+    });
+
+    diffOutput.innerHTML = html;
+    statAdded.textContent = `+${addedCount} ${mode === 'lines' ? 'líneas' : 'cambios'}`;
+    statRemoved.textContent = `-${removedCount} ${mode === 'lines' ? 'líneas' : 'cambios'}`;
+
+    const simPct = Math.min(100, Math.round((unchangedChars / totalChars) * 100));
+    statSim.textContent = `Similitud: ${simPct}%`;
+  }
+
+  [textLeft, textRight].forEach(el => el.addEventListener('input', computeDiff));
+  diffMode.addEventListener('change', computeDiff);
+
+  btnCopy.addEventListener('click', async () => {
+    const text = diffOutput.innerText;
+    await navigator.clipboard.writeText(text);
+    btnCopy.textContent = '¡Copiado!';
+    setTimeout(() => { btnCopy.textContent = '📋 Copiar Diff al Portapapeles'; }, 1500);
+  });
+
+  computeDiff();
+</script>
+</body>
+</html>

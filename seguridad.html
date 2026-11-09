@@ -302,9 +302,59 @@
   <p class="sub">Generador de claves criptográficas seguras, verificador de hashes y UUIDs</p>
 
   <div class="tabs">
-    <button class="tab-btn active" id="tab-pass">🔑 Contraseñas Seguras</button>
+    <button class="tab-btn active" id="tab-pass">🔑 Generador</button>
+    <button class="tab-btn" id="tab-audit">🛡️ Analizar mi Contraseña</button>
     <button class="tab-btn" id="tab-hash">🔒 Hashes Criptográficos</button>
     <button class="tab-btn" id="tab-uuid">🆔 UUID & Claves</button>
+  </div>
+
+  <!-- PANEL AUDITORÍA DE CONTRASEÑA -->
+  <div class="panel" id="panel-audit">
+    <div style="position:relative;margin-bottom:1rem">
+      <input type="password" id="audit-input" placeholder="Escribe aquí cualquier contraseña para ponerla a prueba..." style="padding-right:48px;font-size:0.95rem" autocomplete="off" spellcheck="false"/>
+      <button type="button" id="toggle-show-pass" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--pink);font-size:1.15rem">👁️</button>
+    </div>
+
+    <div class="meter-wrap">
+      <div class="meter-text">
+        <span>Diagnóstico: <strong id="audit-level-label">Escribe una contraseña</strong></span>
+        <span id="audit-entropy-label">0 bits</span>
+      </div>
+      <div class="meter-bar">
+        <div class="meter-fill" id="audit-meter-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Tiempos estimados de crackeo -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:0.7rem;margin-bottom:1.2rem;text-align:left">
+      <div style="background:rgba(0,0,0,0.25);padding:0.75rem;border-radius:12px;border:1px solid rgba(255,255,255,0.08)">
+        <div style="font-size:0.72rem;color:var(--gold);font-weight:600">Ataque Web Online</div>
+        <div id="crack-online" style="font-size:0.86rem;color:#fff;font-weight:600;margin-top:2px">-</div>
+        <span style="font-size:0.65rem;color:rgba(255,255,255,0.45)">100 intentos/hora</span>
+      </div>
+      <div style="background:rgba(0,0,0,0.25);padding:0.75rem;border-radius:12px;border:1px solid rgba(255,255,255,0.08)">
+        <div style="font-size:0.72rem;color:var(--gold);font-weight:600">Fuerza Bruta GPU</div>
+        <div id="crack-gpu" style="font-size:0.86rem;color:#fff;font-weight:600;margin-top:2px">-</div>
+        <span style="font-size:0.65rem;color:rgba(255,255,255,0.45)">10 mil millones/seg (RTX)</span>
+      </div>
+      <div style="background:rgba(0,0,0,0.25);padding:0.75rem;border-radius:12px;border:1px solid rgba(255,255,255,0.08)">
+        <div style="font-size:0.72rem;color:var(--gold);font-weight:600">Supercomputadora</div>
+        <div id="crack-super" style="font-size:0.86rem;color:#fff;font-weight:600;margin-top:2px">-</div>
+        <span style="font-size:0.65rem;color:rgba(255,255,255,0.45)">100 billones/seg</span>
+      </div>
+    </div>
+
+    <!-- Lista de verificación -->
+    <div style="text-align:left;display:flex;flex-direction:column;gap:0.4rem;font-size:0.8rem;background:rgba(0,0,0,0.2);padding:0.9rem;border-radius:12px;border:1px solid rgba(255,255,255,0.06)">
+      <div id="chk-len">❌ Al menos 12 caracteres (ideal 16+)</div>
+      <div id="chk-upper">❌ Contiene letras mayúsculas (A-Z)</div>
+      <div id="chk-lower">❌ Contiene letras minúsculas (a-z)</div>
+      <div id="chk-num">❌ Contiene números (0-9)</div>
+      <div id="chk-sym">❌ Contiene símbolos especiales (!@#$...)</div>
+      <div id="chk-pattern">✅ Sin patrones o secuencias fáciles</div>
+    </div>
+
+    <div id="audit-feedback" style="margin-top:0.9rem;font-size:0.82rem;color:var(--pink);text-align:left;line-height:1.4"></div>
   </div>
 
   <!-- PANEL 1: CONTRASEÑAS -->
@@ -393,22 +443,181 @@
 <script>
   // Tabs
   const tabPass  = document.getElementById('tab-pass');
+  const tabAudit = document.getElementById('tab-audit');
   const tabHash  = document.getElementById('tab-hash');
   const tabUuid  = document.getElementById('tab-uuid');
-  const panelPass = document.getElementById('panel-pass');
-  const panelHash = document.getElementById('panel-hash');
-  const panelUuid = document.getElementById('panel-uuid');
+  const panelPass  = document.getElementById('panel-pass');
+  const panelAudit = document.getElementById('panel-audit');
+  const panelHash  = document.getElementById('panel-hash');
+  const panelUuid  = document.getElementById('panel-uuid');
 
   function setTab(btn, panel) {
-    [tabPass, tabHash, tabUuid].forEach(b => b.classList.remove('active'));
-    [panelPass, panelHash, panelUuid].forEach(p => p.classList.remove('active'));
+    [tabPass, tabAudit, tabHash, tabUuid].forEach(b => b.classList.remove('active'));
+    [panelPass, panelAudit, panelHash, panelUuid].forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     panel.classList.add('active');
   }
 
   tabPass.addEventListener('click', () => setTab(tabPass, panelPass));
+  tabAudit.addEventListener('click', () => setTab(tabAudit, panelAudit));
   tabHash.addEventListener('click', () => setTab(tabHash, panelHash));
   tabUuid.addEventListener('click', () => setTab(tabUuid, panelUuid));
+
+  // --- PASSWORD AUDITOR (ANÁLISIS DE SEGURIDAD) ---
+  const auditInput       = document.getElementById('audit-input');
+  const toggleShowPass   = document.getElementById('toggle-show-pass');
+  const auditLevelLabel  = document.getElementById('audit-level-label');
+  const auditEntropyLbl  = document.getElementById('audit-entropy-label');
+  const auditMeterFill   = document.getElementById('audit-meter-fill');
+  const crackOnline      = document.getElementById('crack-online');
+  const crackGpu         = document.getElementById('crack-gpu');
+  const crackSuper       = document.getElementById('crack-super');
+  const chkLen           = document.getElementById('chk-len');
+  const chkUpper         = document.getElementById('chk-upper');
+  const chkLower         = document.getElementById('chk-lower');
+  const chkNum           = document.getElementById('chk-num');
+  const chkSym           = document.getElementById('chk-sym');
+  const chkPattern       = document.getElementById('chk-pattern');
+  const auditFeedback    = document.getElementById('audit-feedback');
+
+  toggleShowPass.addEventListener('click', () => {
+    if (auditInput.type === 'password') {
+      auditInput.type = 'text';
+      toggleShowPass.textContent = '🙈';
+    } else {
+      auditInput.type = 'password';
+      toggleShowPass.textContent = '👁️';
+    }
+  });
+
+  function formatTime(seconds) {
+    if (seconds <= 1) return 'Instantáneo (< 1 seg)';
+    if (seconds < 60) return `${Math.round(seconds)} segundos`;
+    const mins = seconds / 60;
+    if (mins < 60) return `${Math.round(mins)} minutos`;
+    const hours = mins / 60;
+    if (hours < 24) return `${Math.round(hours)} horas`;
+    const days = hours / 24;
+    if (days < 365) return `${Math.round(days)} días`;
+    const years = days / 365.25;
+    if (years < 1000) return `${Math.round(years)} años`;
+    if (years < 1e6) return `${(years / 1e3).toFixed(1)} mil años`;
+    if (years < 1e9) return `${(years / 1e6).toFixed(1)} millones de años`;
+    if (years < 1e12) return `${(years / 1e9).toFixed(1)} mil millones de años`;
+    return `${(years / 1e12).toFixed(1)} billones de años`;
+  }
+
+  function auditPassword() {
+    const val = auditInput.value;
+    if (!val) {
+      auditLevelLabel.textContent = 'Escribe una contraseña';
+      auditEntropyLbl.textContent = '0 bits';
+      auditMeterFill.style.width = '0%';
+      auditMeterFill.style.background = '#e8507a';
+      crackOnline.textContent = '-';
+      crackGpu.textContent = '-';
+      crackSuper.textContent = '-';
+      chkLen.textContent = '❌ Al menos 12 caracteres (ideal 16+)';
+      chkUpper.textContent = '❌ Contiene letras mayúsculas (A-Z)';
+      chkLower.textContent = '❌ Contiene letras minúsculas (a-z)';
+      chkNum.textContent = '❌ Contiene números (0-9)';
+      chkSym.textContent = '❌ Contiene símbolos especiales (!@#$...)';
+      chkPattern.textContent = '✅ Sin patrones o secuencias fáciles';
+      auditFeedback.textContent = '';
+      return;
+    }
+
+    const hasUpper = /[A-Z]/.test(val);
+    const hasLower = /[a-z]/.test(val);
+    const hasNum   = /[0-9]/.test(val);
+    const hasSym   = /[^A-Za-z0-9]/.test(val);
+    const len = val.length;
+
+    // Check common patterns
+    const commonPatterns = ['123456', 'qwerty', 'password', 'admin', 'iloveyou', 'abc123', '111111', '000000', 'contra', 'clave'];
+    const lowerVal = val.toLowerCase();
+    const hasCommon = commonPatterns.some(p => lowerVal.includes(p));
+    const hasRepeats = /(.)\1{2,}/.test(val); // 3 o más iguales consecutivos
+    const isSequential = /(?:012|123|234|345|456|567|678|789|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i.test(val);
+
+    chkLen.textContent = len >= 16 ? '✅ Longitud óptima (16+ caracteres)' : (len >= 12 ? '⚠️ Longitud aceptable (12-15 caracteres)' : '❌ Muy corta (< 12 caracteres)');
+    chkUpper.textContent = hasUpper ? '✅ Contiene mayúsculas' : '❌ Falta mayúsculas (A-Z)';
+    chkLower.textContent = hasLower ? '✅ Contiene minúsculas' : '❌ Falta minúsculas (a-z)';
+    chkNum.textContent = hasNum ? '✅ Contiene números' : '❌ Falta números (0-9)';
+    chkSym.textContent = hasSym ? '✅ Contiene símbolos especiales' : '❌ Falta símbolos (!@#$...)';
+
+    if (hasCommon || hasRepeats || isSequential) {
+      chkPattern.textContent = '❌ Contiene patrones, secuencias o repeticiones predecibles';
+    } else {
+      chkPattern.textContent = '✅ Sin patrones o secuencias obvias';
+    }
+
+    // Pool size
+    let pool = 0;
+    if (hasLower) pool += 26;
+    if (hasUpper) pool += 26;
+    if (hasNum)   pool += 10;
+    if (hasSym)   pool += 33;
+    if (pool === 0) pool = 10;
+
+    let rawEntropy = len * Math.log2(pool);
+    if (hasCommon) rawEntropy = Math.max(10, rawEntropy - 30);
+    if (hasRepeats) rawEntropy = Math.max(10, rawEntropy - 15);
+    if (isSequential) rawEntropy = Math.max(10, rawEntropy - 15);
+    const entropy = Math.round(rawEntropy);
+    auditEntropyLbl.textContent = `~${entropy} bits`;
+
+    // Combinaciones y tiempos
+    // log10(combinations) = entropy * log10(2)
+    const log10Combos = entropy * Math.LOG10E;
+    // Online: 100/3600 = 0.02777/s -> log10(rate) = -1.556
+    // GPU: 10^10/s -> log10(rate) = 10
+    // Super: 10^14/s -> log10(rate) = 14
+    function calcTimeLog(rateLog) {
+      const diff = log10Combos - rateLog;
+      if (diff < 0) return 0.5;
+      if (diff > 25) return 1e25;
+      return Math.pow(10, diff);
+    }
+
+    crackOnline.textContent = formatTime(calcTimeLog(-1.556));
+    crackGpu.textContent    = formatTime(calcTimeLog(10));
+    crackSuper.textContent  = formatTime(calcTimeLog(14));
+
+    // Puntuación
+    let score = 0;
+    if (len >= 8) score += 15;
+    if (len >= 12) score += 20;
+    if (len >= 16) score += 15;
+    if (hasUpper) score += 10;
+    if (hasLower) score += 10;
+    if (hasNum) score += 10;
+    if (hasSym) score += 20;
+    if (!hasCommon && !hasRepeats && !isSequential) score += 10;
+    score = Math.min(100, score);
+
+    auditMeterFill.style.width = score + '%';
+    if (score < 40) {
+      auditMeterFill.style.background = '#ef4444';
+      auditLevelLabel.textContent = '❌ Muy Débil / Vulnerable';
+      auditFeedback.textContent = '⚠️ Esta contraseña puede descifrarse casi instantáneamente con herramientas automatizadas. Agrega más longitud, mezcla símbolos y evita palabras o números consecutivos.';
+    } else if (score < 65) {
+      auditMeterFill.style.background = '#f59e0b';
+      auditLevelLabel.textContent = '⚠️ Moderada';
+      auditFeedback.textContent = '💡 Nivel básico. Es suficiente para sitios sin valor crítico, pero vulnerable a filtraciones de bases de datos. Agranda la longitud a más de 14 caracteres con símbolos.';
+    } else if (score < 85) {
+      auditMeterFill.style.background = '#3b82f6';
+      auditLevelLabel.textContent = '🛡️ Fuerte';
+      auditFeedback.textContent = '✨ ¡Buena contraseña! Resiste ataques de fuerza bruta comunes. Para cuentas de máxima seguridad (banco, correo principal), añade un par de caracteres más o una passphrase.';
+    } else {
+      auditMeterFill.style.background = '#4ade80';
+      auditLevelLabel.textContent = '👑 Inexpugnable / Excelente';
+      auditFeedback.textContent = '🚀 ¡Excelente nivel de seguridad! Tomaría billones de años crackearla con supercomputadoras actuales.';
+    }
+  }
+
+  auditInput.addEventListener('input', auditPassword);
+
 
   // --- PASSWORD GENERATOR ---
   const passOutput    = document.getElementById('pass-output');
